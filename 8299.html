@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>群聯 (8299) 專業投資與營運儀表板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0b0f19',
+                        cardbg: '#131d31',
+                        accent: '#3b82f6',
+                        success: '#10b981',
+                        warning: '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-darkbg text-slate-100 font-sans antialiased min-h-screen p-6">
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <span class="bg-blue-600 text-white text-xs px-2.5 py-1 rounded-full font-semibold">櫃買半導體</span>
+                    <span class="text-xs text-slate-400">更新時間：2026-08-24 14:30</span>
+                </div>
+                <h1 class="text-3xl font-bold mt-2 flex items-center gap-3">
+                    群聯電子 <span class="text-xl text-slate-400 font-mono">8299.TWO</span>
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">全球 NAND Flash 控制晶片與儲存方案領導廠商｜AI 基礎建設儲存推動者</p>
+            </div>
+            <div class="flex items-center gap-6 bg-slate-900/80 px-6 py-4 rounded-xl border border-slate-800">
+                <div>
+                    <div class="text-xs text-slate-400">收盤價 (NTD)</div>
+                    <div class="text-3xl font-bold text-success font-mono mt-0.5">2,135.00</div>
+                </div>
+                <div class="border-l border-slate-800 pl-6">
+                    <div class="text-xs text-slate-400">漲跌幅</div>
+                    <div class="text-xl font-bold text-success font-mono mt-0.5">+60.00 (+2.89%)</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Key Metrics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
+                <div class="text-sm text-slate-400">上半年每股盈餘 (H1 EPS)</div>
+                <div class="text-2xl font-bold font-mono mt-2 text-blue-400">187.43 元</div>
+                <div class="text-xs text-success mt-1">▲ Q2 單季 EPS 118.57 元 (創新高)</div>
+            </div>
+            <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
+                <div class="text-sm text-slate-400">上半年現金股利</div>
+                <div class="text-2xl font-bold font-mono mt-2 text-warning">60.00 元</div>
+                <div class="text-xs text-slate-400 mt-1">董事會決議盈餘分配案</div>
+            </div>
+            <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
+                <div class="text-sm text-slate-400">毛利率 / 營業利益率</div>
+                <div class="text-2xl font-bold font-mono mt-2 text-purple-400">63.8% / 38.8%</div>
+                <div class="text-xs text-slate-400 mt-1">AI 結構性儲存需求帶動</div>
+            </div>
+            <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
+                <div class="text-sm text-slate-400">總市值</div>
+                <div class="text-2xl font-bold font-mono mt-2 text-emerald-400">4,720 億</div>
+                <div class="text-xs text-slate-400 mt-1">本益比 (PER): 約 9.71 倍</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Financial Performance Chart -->
+            <div class="lg:col-span-2 bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-slate-200">近年營運與獲利表現 (2022 - 2026)</h2>
+                    <span class="text-xs bg-slate-800 px-3 py-1 rounded text-slate-400">單位：百萬台幣 / EPS 元</span>
+                </div>
+                <div class="h-72">
+                    <canvas id="financialChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Major ETF Holdings -->
+            <div class="bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl">
+                <h2 class="text-lg font-bold text-slate-200 mb-4">主要法人與 ETF 持股比重</h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
+                        <div>
+                            <div class="font-semibold text-sm">台新臺灣IC設計 (00947)</div>
+                            <div class="text-xs text-slate-400">主動/被動 IC 設計 ETF</div>
+                        </div>
+                        <div class="font-mono font-bold text-blue-400">6.38%</div>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
+                        <div>
+                            <div class="font-semibold text-sm">元大富櫃50 (006201)</div>
+                            <div class="text-xs text-slate-400">櫃買權值核心 ETF</div>
+                        </div>
+                        <div class="font-mono font-bold text-blue-400">5.93%</div>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
+                        <div>
+                            <div class="font-semibold text-sm">中信上櫃ESG30 (00928)</div>
+                            <div class="text-xs text-slate-400">上櫃 ESG 標竿</div>
+                        </div>
+                        <div class="font-mono font-bold text-blue-400">5.26%</div>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
+                        <div>
+                            <div class="font-semibold text-sm">外資法人持股總計</div>
+                            <div class="text-xs text-slate-400">外資持股比例</div>
+                        </div>
+                        <div class="font-mono font-bold text-emerald-400">39.89%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- News & Catalysts Timeline -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- News Section -->
+            <div class="bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl">
+                <h2 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+                    <span>📰</span> 最新重要新聞與公告
+                </h2>
+                <div class="space-y-4">
+                    <div class="border-l-2 border-blue-500 pl-4 py-1">
+                        <div class="text-xs text-slate-400">2026-08-13</div>
+                        <div class="font-semibold text-sm mt-0.5">MSCI 季度調整納入台股標準指數</div>
+                        <div class="text-xs text-slate-300 mt-1">群聯與南亞科、華邦電等6檔同列 MSCI 全球標準指數成分股，調整案將於 8 月 31 日收盤生效，吸引被動資金配置。</div>
+                    </div>
+                    <div class="border-l-2 border-success pl-4 py-1">
+                        <div class="text-xs text-slate-400">2026-08-13</div>
+                        <div class="font-semibold text-sm mt-0.5">Q2 財報亮眼：EPS 118.57 元、擬配息 60 元</div>
+                        <div class="text-xs text-slate-300 mt-1">受惠 AI 基礎建設推論資料與 Token 暴增，Q2 歸屬母公司淨利 262.17 億元創歷史新高，上半年每股純益達 187.43 元。</div>
+                    </div>
+                    <div class="border-l-2 border-warning pl-4 py-1">
+                        <div class="text-xs text-slate-400">2026-08-21</div>
+                        <div class="font-semibold text-sm mt-0.5">受邀參加國泰與富邦證券投資論壇</div>
+                        <div class="text-xs text-slate-300 mt-1">群聯於 8 月 25 日與 8 月 28 日分別出席國泰及富邦法人說明會，向市場說明最新營運績效與 AI 儲存策略。</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investment Catalysts & Strategy -->
+            <div class="bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl">
+                <h2 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+                    <span>🎯</span> 投資亮點與產業驅動力
+                </h2>
+                <div class="space-y-3">
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <div class="font-semibold text-blue-400 text-sm">1. AI 推論帶動資料爆發</div>
+                        <p class="text-xs text-slate-300 mt-1">AI 應用從訓練轉向大量推論，帶動 Token 詞元儲存需求激增，群聯 enterprise SSD 控制晶片技術與 FlexPro 平台具備強大護城河。</p>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <div class="font-semibold text-success text-sm">2. 高殖利率與穩健配息</div>
+                        <p class="text-xs text-slate-300 mt-1">上半年每股盈餘高達 187.43 元，並決議半年度每股配發 60 元現金股利，股東回饋力道強勁。</p>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        <div class="font-semibold text-purple-400 text-sm">3. MSCI 被動資金效應</div>
+                        <p class="text-xs text-slate-300 mt-1">8 月 31 日 MSCI 權重調整正式生效，預期將迎來被動型基金買盤調整，為股價提供流動性支撐。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-xs text-slate-500 py-6 border-t border-slate-800/80">
+            群聯電子 (8299) 專屬專業儀表板 ｜ 本儀表板由 Hermes AI Agent 自動彙整與生成，數據源自公開資訊觀測站與各大財經媒體。
+        </footer>
+    </div>
+
+    <script>
+        // Financial Chart Setup
+        const ctx = document.getElementById('financialChart').getContext('2d');
+        const financialChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['2022', '2023', '2024', '2025', '2026 (H1)'],
+                datasets: [
+                    {
+                        label: '每股盈餘 (EPS 元)',
+                        data: [27.71, 18.48, 38.95, 41.98, 187.43],
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6,
+                        yAxisID: 'y',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#94a3b8' }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#1e293b' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { color: '#1e293b' },
+                        ticks: { color: '#94a3b8' },
+                        title: { display: true, text: 'EPS (元)', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
