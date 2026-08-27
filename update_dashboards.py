@@ -4,12 +4,12 @@ import subprocess
 from datetime import datetime
 
 def fetch_stock_data(ticker):
-    result = subprocess.run(['python', 'fetch_stock.py', ticker], capture_output=True, text=True, cwd='C:/My_Project/Hermes/AutoStock')
+    result = subprocess.run(['python', 'fetch_stock.py', ticker], capture_output=True, text=True, cwd='C:/My_Project/Hermes/[工作區]/AutoStock')
     return json.loads(result.stdout)
 
 def update_dashboard(ticker, data):
     """Update the HTML dashboard with fresh price/change data"""
-    html_path = f'C:/My_Project/Hermes/AutoStock/{ticker}.html'
+    html_path = f'C:/My_Project/Hermes/[工作區]/AutoStock/{ticker}.html'
     
     with open(html_path, 'r', encoding='utf-8') as f:
         content = f.read()
@@ -88,7 +88,7 @@ def update_dashboard(ticker, data):
 
 def update_index_html(all_data):
     """Update index.html with latest prices and changes"""
-    html_path = 'C:/My_Project/Hermes/AutoStock/index.html'
+    html_path = 'C:/My_Project/Hermes/[工作區]/AutoStock/index.html'
     
     with open(html_path, 'r', encoding='utf-8') as f:
         content = f.read()
