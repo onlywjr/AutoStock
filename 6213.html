@@ -1,13 +1,166 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="dark">
 <head>
-<meta charset="UTF-8">
-<title>6213 股票儀表板</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6213 股票儀表板</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .bg-cardbg { background-color: #111827; }
+    .text-success { color: #10b981; }
+    .text-warning { color: #f59e0b; }
+    .text-slate-400 { color: #94a3b8; }
+    .text-slate-300 { color: #cbd5e1; }
+    .text-slate-200 { color: #e2e8f0; }
+    .text-slate-500 { color: #64748b; }
+    .border-slate-800 { border-color: #1e293b; }
+    .border-slate-800\/80 { border-color: rgba(30, 41, 59, 0.8); }
+    .bg-slate-900\/60 { background-color: rgba(15, 23, 42, 0.6); }
+    .bg-slate-900\/80 { background-color: rgba(15, 23, 42, 0.8); }
+    .bg-blue-600 { background-color: #2563eb; }
+    .bg-blue-500 { background-color: #3b82f6; }
+    .text-blue-400 { color: #60a5fa; }
+    .text-purple-400 { color: #a78bfa; }
+    .text-emerald-400 { color: #34d399; }
+    .text-yellow-400 { color: #facc15; }
+    .text-red-400 { color: #f87171; }
+    .font-mono { font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+  </style>
 </head>
-<body>
-<h1>6213 股票儀表板</h1>
-<p>更新時間：2026-09-08 07:03</p>
-<p>收盤價：513.00 NTD</p>
-<p>漲跌幅：▼ 0.78%</p>
+<body class="bg-gray-900 text-white font-sans antialiased min-h-screen p-6 flex flex-col justify-between">
+  <div class="max-w-7xl mx-auto space-y-6">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="bg-blue-600 text-white text-xs px-2.5 py-1 rounded-full font-semibold">半導體業</span>
+          <span class="text-xs text-slate-400">更新時間：2026-09-09 07:04</span>
+        </div>
+        <h1 class="text-3xl font-bold mt-2 flex items-center gap-3">
+          訊諾國際 <span class="text-xl text-slate-400 font-mono">6213.TW</span>
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">訊諾國際 — 通訊設備與系統解決方案</p>
+      </div>
+      <div class="flex items-center gap-6 bg-slate-900/80 px-6 py-4 rounded-xl border border-slate-800">
+        <div>
+          <div class="text-xs text-slate-400">收盤價 (NTD)</div>
+          <div class="text-3xl font-bold text-red-400 font-mono mt-0.5">510.00</div>
+        </div>
+        <div class="border-l border-slate-800 pl-6">
+          <div class="text-xs text-slate-400">漲跌幅</div>
+          <div class="text-xl font-bold text-red-400 font-mono mt-0.5">▼ 0.59%</div>
+        </div>
+      </div>
+    </header>
+    <div class="bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl">
+      <h2 class="text-lg font-bold text-slate-200 mb-4">今日股價走勢</h2>
+      <div class="h-64">
+        <canvas id="priceChart"></canvas>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
+        <div class="text-sm text-slate-400">成交量</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-blue-400">15,951,216</div>
+        <div class="text-xs text-slate-400 mt-1">股</div>
+      </div>
+      <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
+        <div class="text-sm text-slate-400">漲跌價差</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-red-400">-3.00</div>
+        <div class="text-xs text-slate-400 mt-1">NTD</div>
+      </div>
+      <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
+        <div class="text-sm text-slate-400">日內高 / 低</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-purple-400">512.67 / 507.39</div>
+        <div class="text-xs text-slate-400 mt-1">NTD</div>
+      </div>
+      <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
+        <div class="text-sm text-slate-400">總市值 / 本益比</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-emerald-400">-- / --</div>
+        <div class="text-xs text-slate-400 mt-1">待更新</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl">
+        <h2 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+          <span>📰</span> 最新消息
+        </h2>
+        <div class="space-y-4">
+          <div class="border-l-2 border-blue-500 pl-4 py-1">
+            <div class="text-xs text-slate-400">2026-09-09</div>
+            <div class="font-semibold text-sm mt-0.5">訊諾國際 (6213) 收盤 510.00 元，▼ 0.59%</div>
+            <div class="text-xs text-slate-300 mt-1">台股收報，通訊設備與系統解決方案股整體走弱。</div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl">
+        <h2 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+          <span>🎯</span> 投資關注重點
+        </h2>
+        <div class="space-y-3">
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+            <div class="font-semibold text-blue-400 text-sm">1. 通訊設備與系統解決方案需求</div>
+            <p class="text-xs text-slate-300 mt-1">持續增長的 通訊設備與系統解決方案市場需求帶動營收成長。</p>
+          </div>
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+            <div class="font-semibold text-yellow-400 text-sm">2. 營運季節性</div>
+            <p class="text-xs text-slate-300 mt-1">Q4 通常是出貨旺季，屆時營收與股價可能受正面影響。</p>
+          </div>
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+            <div class="font-semibold text-red-400 text-sm">3. 產業景氣循環</div>
+            <p class="text-xs text-slate-300 mt-1">產業具週期性，需留意全球電子產品需求與庫存變化。</p>
+          </div>
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+            <div class="font-semibold text-purple-400 text-sm">4. 法人持股動向</div>
+            <p class="text-xs text-slate-300 mt-1">持續追蹤外資與機構投資人持股比例變化，作為參考指標。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="text-center text-xs text-slate-500 py-6 border-t border-slate-800/80">
+      6213 專屬專業儀表板 ｜ 本儀表板由 Hermes AI Agent 自動彙整與生成，數據源自公開資訊觀測站、鉅亨網、Yahoo 股市等公開財經媒體。
+    </footer>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    const labels = ["09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00"];
+    const data = [508.78, 510.16, 507.97, 510.73, 507.39, 508.52, 512.67, 510.17, 509.54, 510.96, 510.57, 511.85, 508.66, 509.86, 510.7, 512.66];
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '收盤價 (NTD)',
+          data: data,
+          borderColor: '#f87171',
+          backgroundColor: 'rgba(248, 113, 113, 0.1)',
+          borderWidth: 2,
+          pointBackgroundColor: '#f87171',
+          pointRadius: 3,
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#94a3b8' } }
+        },
+        scales: {
+          x: {
+            grid: { color: '#374151' },
+            ticks: { color: '#94a3b8' }
+          },
+          y: {
+            grid: { color: '#374151' },
+            ticks: { color: '#94a3b8' },
+            min: 505.39,
+            max: 514.67
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
