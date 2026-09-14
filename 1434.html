@@ -14,9 +14,9 @@
     .text-slate-200 { color: #e2e8f0; }
     .text-slate-500 { color: #64748b; }
     .border-slate-800 { border-color: #1e293b; }
-    .border-slate-800\/80 { border-color: rgba(30, 41, 59, 0.8); }
-    .bg-slate-900\/60 { background-color: rgba(15, 23, 42, 0.6); }
-    .bg-slate-900\/80 { background-color: rgba(15, 23, 42, 0.8); }
+    .border-slate-800\/{80} { border-color: rgba(30, 41, 59, 0.8); }
+    .bg-slate-900\/{60} { background-color: rgba(15, 23, 42, 0.6); }
+    .bg-slate-900\/{80} { background-color: rgba(15, 23, 42, 0.8); }
     .bg-blue-600 { background-color: #2563eb; }
     .bg-blue-500 { background-color: #3b82f6; }
     .text-blue-400 { color: #60a5fa; }
@@ -32,22 +32,22 @@
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-cardbg p-6 rounded-2xl border border-slate-800 shadow-xl gap-4">
       <div>
         <div class="flex items-center gap-3">
-          <span class="bg-blue-600 text-white text-xs px-2.5 py-1 rounded-full font-semibold">半導體業</span>
-          <span class="text-xs text-slate-400">更新時間：2026-09-12 07:01</span>
+          <span class="bg-blue-600 text-white text-xs px-2.5 py-1 rounded-full font-semibold">電子代工與測試服務</span>
+          <span class="text-xs text-slate-400">更新時間：2026-09-14 08:59</span>
         </div>
         <h1 class="text-3xl font-bold mt-2 flex items-center gap-3">
-          和碩國際 <span class="text-xl text-slate-400 font-mono">1434.TW</span>
+          福懋 <span class="text-xl text-slate-400 font-mono">1434.TW</span>
         </h1>
-        <p class="text-slate-400 text-sm mt-1">和碩國際 — 電子代工與測試服務</p>
+        <p class="text-slate-400 text-sm mt-1">福懋 — 電子代工與測試服務</p>
       </div>
       <div class="flex items-center gap-6 bg-slate-900/80 px-6 py-4 rounded-xl border border-slate-800">
         <div>
           <div class="text-xs text-slate-400">收盤價 (NTD)</div>
-          <div class="text-3xl font-bold text-red-400 font-mono mt-0.5">17.80</div>
+          <div class="text-3xl font-bold text-red-400 font-mono mt-0.5">17.00</div>
         </div>
         <div class="border-l border-slate-800 pl-6">
           <div class="text-xs text-slate-400">漲跌幅</div>
-          <div class="text-xl font-bold text-red-400 font-mono mt-0.5">(▼ 1.12%)</div>
+          <div class="text-xl font-bold text-red-400 font-mono mt-0.5">▼ 5.56%</div>
         </div>
       </div>
     </header>
@@ -60,17 +60,17 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
         <div class="text-sm text-slate-400">成交量</div>
-        <div class="text-2xl font-bold font-mono mt-2 text-blue-400">1,326,912</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-blue-400">953,733</div>
         <div class="text-xs text-slate-400 mt-1">股</div>
       </div>
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
         <div class="text-sm text-slate-400">漲跌價差</div>
-        <div class="text-2xl font-bold font-mono mt-2 text-red-400">-0.15</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-red-400">-1.00</div>
         <div class="text-xs text-slate-400 mt-1">NTD</div>
       </div>
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
         <div class="text-sm text-slate-400">日內高 / 低</div>
-        <div class="text-2xl font-bold font-mono mt-2 text-purple-400">20.84 / 15.93</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-purple-400">19.88 / 14.22</div>
         <div class="text-xs text-slate-400 mt-1">NTD</div>
       </div>
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
@@ -86,8 +86,8 @@
         </h2>
         <div class="space-y-4">
           <div class="border-l-2 border-blue-500 pl-4 py-1">
-            <div class="text-xs text-slate-400">2026-09-11</div>
-            <div class="font-semibold text-sm mt-0.5">和碩國際 (1434) 收盤 18.00 元，▼ 0.83%</div>
+            <div class="text-xs text-slate-400">2026-09-14</div>
+            <div class="font-semibold text-sm mt-0.5">福懋 (1434) 收盤 17.00 元，▼ 5.56%</div>
             <div class="text-xs text-slate-300 mt-1">台股收報，電子代工與測試服務股整體走弱。</div>
           </div>
         </div>
@@ -124,7 +124,7 @@
   <script>
     const ctx = document.getElementById('priceChart').getContext('2d');
     const labels = ["09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00"];
-    const data = [16.51, 16.17, 17.68, 20.84, 18.26, 15.93, 17.25, 17.1, 18.22, 18.42, 16.71, 15.98, 20.15, 18.16, 20.77, 19.53];
+    const data = [17.82, 17.44, 19.88, 14.68, 17.35, 15.47, 18.12, 14.57, 19.33, 14.22, 15.74, 17.13, 15.45, 17.74, 16.54, 17.0];
     new Chart(ctx, {
       type: 'line',
       data: {
@@ -155,8 +155,8 @@
           y: {
             grid: { color: '#374151' },
             ticks: { color: '#94a3b8' },
-            min: 13.93,
-            max: 22.84
+            min: 12.22,
+            max: 21.88
           }
         }
       }
