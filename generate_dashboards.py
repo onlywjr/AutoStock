@@ -3,18 +3,26 @@ import json
 import datetime
 from pathlib import Path
 
-data = {
-    "8299": {"price": 2085.00, "changePct": -0.4796, "volume": 2754769},
-    "1434": {"price": 17.80, "changePct": -1.6854, "volume": 2221461},
-    "6213": {"price": 510.00, "changePct": -0.5882, "volume": 15951216},
-    "6139": {"price": 742.00, "changePct": 0.4043, "volume": 1159350},
-}
+# Try loading live data, fallback to hardcoded
+repo = Path(r"C:\My_Project\Hermes\[工作區]\AutoStock")
+live_file = repo / "live_data.json"
+if live_file.exists():
+    with open(live_file, encoding="utf-8") as f:
+        live = json.load(f)
+    data = {t: live[t] for t in ["8299", "1434", "6213", "6139"]}
+else:
+    data = {
+        "8299": {"price": 2085.00, "changePct": -0.4796, "volume": 2754769},
+        "1434": {"price": 17.80, "changePct": -1.6854, "volume": 2221461},
+        "6213": {"price": 510.00, "changePct": -0.5882, "volume": 15951216},
+        "6139": {"price": 742.00, "changePct": 0.4043, "volume": 1159350},
+    }
 
 company_info = {
-    "8299": ("南亞科技", "SUPERC", "半導體封裝測試服務"),
-    "1434": ("和碩國際", "BYP", "電子代工與測試服務"),
-    "6213": ("訊諾國際", "SHINE", "通訊設備與系統解決方案"),
-    "6139": ("積層半導體", "LECO", "半導體封裝測試服務"),
+    "8299": ("南亞科", "SUPERC", "半導體封裝測試服務"),
+    "1434": ("和碩", "BYP", "電子代工與測試服務"),
+    "6213": ("訊諾", "SHINE", "通訊設備與系統解決方案"),
+    "6139": ("積層科", "LECO", "半導體封裝測試服務"),
 }
 
 now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -22,10 +30,10 @@ today_str = datetime.datetime.now().strftime("%Y-%m-%d")
 
 def arrow_for(pct):
     if pct > 0:
-        return "\u25B2"
+        return "▲"
     elif pct < 0:
-        return "\u25BC"
-    return "\u2014"
+        return "▼"
+    return "—"
 
 def color_class_for(pct):
     if pct > 0:
@@ -241,18 +249,18 @@ def gen_rich_html(ticker, d):
 </html>"""
     return html
 
-repo = Path(r"C:\My_Project\Hermes\[工作區]\AutoStock")
+# Generate dashboards
 for ticker in ["8299", "1434", "6213", "6139"]:
     html = gen_rich_html(ticker, data[ticker])
     (repo / f"{ticker}.html").write_text(html, encoding="utf-8")
     print(f"[DEBUG] Generated {ticker}.html -- price={data[ticker]['price']:.2f}, change={data[ticker]['changePct']:+.2f}%")
 
 # Build index.html list items manually
-all_tickers = ["1434", "2327", "2327_consistent", "2327_example", "2330", "6139", "6213", "8299"]
+all_tickers = ["8299", "1434", "6213", "6139"]
 li_parts = []
 for ticker in all_tickers:
     d = data.get(ticker)
-    arrow = arrow_for(d["changePct"]) if d else "\u2014"
+    arrow = arrow_for(d["changePct"]) if d else "—"
     if d:
         pct_str = f"{arrow} {abs(d['changePct']):.2f}%"
         desc = f' — 收盤價：{d["price"]:,.2f} NTD / 漲跌幅：{pct_str} / 更新：{now}'
