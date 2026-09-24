@@ -3,13 +3,13 @@ import json
 import datetime
 from pathlib import Path
 
-# Try loading live data, fallback to hardcoded
+# Load live data (all tickers present in live_data.json)
 repo = Path(r"C:\My_Project\Hermes\[工作區]\AutoStock")
 live_file = repo / "live_data.json"
 if live_file.exists():
     with open(live_file, encoding="utf-8") as f:
         live = json.load(f)
-    data = {t: live[t] for t in ["8299", "1434", "6213", "6139"]}
+    data = {t: live[t] for t in sorted(live.keys())}
 else:
     data = {
         "8299": {"price": 2085.00, "changePct": -0.4796, "volume": 2754769},
@@ -21,6 +21,8 @@ else:
 company_info = {
     "8299": ("南亞科", "SUPERC", "半導體封裝測試服務"),
     "1434": ("和碩", "BYP", "電子代工與測試服務"),
+    "2327": ("友達", "AUO", "面板製造"),
+    "2330": ("台積電", "TSMC", "半導體製造"),
     "6213": ("訊諾", "SHINE", "通訊設備與系統解決方案"),
     "6139": ("積層科", "LECO", "半導體封裝測試服務"),
 }
@@ -250,13 +252,13 @@ def gen_rich_html(ticker, d):
     return html
 
 # Generate dashboards
-for ticker in ["8299", "1434", "6213", "6139"]:
+for ticker in sorted(data.keys()):
     html = gen_rich_html(ticker, data[ticker])
     (repo / f"{ticker}.html").write_text(html, encoding="utf-8")
     print(f"[DEBUG] Generated {ticker}.html -- price={data[ticker]['price']:.2f}, change={data[ticker]['changePct']:+.2f}%")
 
 # Build index.html list items manually
-all_tickers = ["8299", "1434", "6213", "6139"]
+all_tickers = sorted(data.keys())
 li_parts = []
 for ticker in all_tickers:
     d = data.get(ticker)
