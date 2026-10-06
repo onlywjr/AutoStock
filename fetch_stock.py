@@ -1,9 +1,10 @@
-import sys, json, urllib.request
+import sys, json, urllib.request, ssl
 from datetime import datetime
 
 symbol = sys.argv[1]
 
 # Determine exchange: TPEx for some, TWSE for others
+ctx = ssl._create_unverified_context()
 tpex_tickers = {'8299'}  # TPEx stocks
 
 if symbol in tpex_tickers:
@@ -11,7 +12,7 @@ if symbol in tpex_tickers:
     date_str = datetime.now().strftime("%Y/%m/%d")
     url = f"https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes?l=zh-tw&d={date_str}&se=EW"
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
-    with urllib.request.urlopen(req) as resp:
+    with urllib.request.urlopen(req, context=ctx) as resp:
         data = json.load(resp)
     for item in data:
         if item.get('SecuritiesCompanyCode') == symbol:
@@ -32,7 +33,7 @@ else:
     date_str = datetime.now().strftime("%Y%m%d")
     url = f"https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date={date_str}&stockNo={symbol}"
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
-    with urllib.request.urlopen(req) as resp:
+    with urllib.request.urlopen(req, context=ctx) as resp:
         data = json.load(resp)
     if data.get('data'):
         last = data['data'][-1]

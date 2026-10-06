@@ -33,7 +33,7 @@
       <div>
         <div class="flex items-center gap-3">
           <span class="bg-blue-600 text-white text-xs px-2.5 py-1 rounded-full font-semibold">半導體業</span>
-          <span class="text-xs text-slate-400">更新時間：2026-10-06 07:01</span>
+          <span class="text-xs text-slate-400">更新時間：2026-10-07 07:51</span>
         </div>
         <h1 class="text-3xl font-bold mt-2 flex items-center gap-3">
           友達 <span class="text-xl text-slate-400 font-mono">2327.TW</span>
@@ -43,11 +43,11 @@
       <div class="flex items-center gap-6 bg-slate-900/80 px-6 py-4 rounded-xl border border-slate-800">
         <div>
           <div class="text-xs text-slate-400">收盤價 (NTD)</div>
-          <div class="text-3xl font-bold text-slate-400 font-mono mt-0.5">626.00</div>
+          <div class="text-3xl font-bold text-red-400 font-mono mt-0.5">625.00</div>
         </div>
         <div class="border-l border-slate-800 pl-6">
           <div class="text-xs text-slate-400">漲跌幅</div>
-          <div class="text-xl font-bold text-slate-400 font-mono mt-0.5">— 0.00%</div>
+          <div class="text-xl font-bold text-red-400 font-mono mt-0.5">▼ 0.16%</div>
         </div>
       </div>
     </header>
@@ -60,17 +60,17 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
         <div class="text-sm text-slate-400">成交量</div>
-        <div class="text-2xl font-bold font-mono mt-2 text-blue-400">67,379,604</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-blue-400">29,671,100</div>
         <div class="text-xs text-slate-400 mt-1">股</div>
       </div>
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
         <div class="text-sm text-slate-400">漲跌價差</div>
-        <div class="text-2xl font-bold font-mono mt-2 text-slate-400">0.00</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-red-400">-1.00</div>
         <div class="text-xs text-slate-400 mt-1">NTD</div>
       </div>
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
         <div class="text-sm text-slate-400">日內高 / 低</div>
-        <div class="text-2xl font-bold font-mono mt-2 text-purple-400">628.77 / 623.16</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-purple-400">627.81 / 622.00</div>
         <div class="text-xs text-slate-400 mt-1">NTD</div>
       </div>
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
@@ -86,8 +86,8 @@
         </h2>
         <div class="space-y-4">
           <div class="border-l-2 border-blue-500 pl-4 py-1">
-            <div class="text-xs text-slate-400">2026-10-06</div>
-            <div class="font-semibold text-sm mt-0.5">友達 (2327) 收盤 626.00 元，— 0.00%</div>
+            <div class="text-xs text-slate-400">2026-10-07</div>
+            <div class="font-semibold text-sm mt-0.5">友達 (2327) 收盤 625.00 元，▼ 0.16%</div>
             <div class="text-xs text-slate-300 mt-1">台股收報，面板製造股整體走弱。</div>
           </div>
         </div>
@@ -124,7 +124,7 @@
   <script>
     const ctx = document.getElementById('priceChart').getContext('2d');
     const labels = ["09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00"];
-    const data = [627.65, 627.39, 625.09, 623.16, 624.39, 627.58, 626.32, 628.77, 625.64, 623.41, 625.22, 626.23, 624.64, 624.81, 625.79, 626.71];
+    const data = [622.17, 622.68, 625.14, 624.92, 623.2, 622.15, 626.89, 624.14, 622.0, 623.43, 622.61, 625.0, 626.0, 624.31, 624.73, 627.81];
     new Chart(ctx, {
       type: 'line',
       data: {
@@ -132,10 +132,10 @@
         datasets: [{
           label: '收盤價 (NTD)',
           data: data,
-          borderColor: '#94a3b8',
-          backgroundColor: 'rgba(148, 163, 184, 0.1)',
+          borderColor: '#f87171',
+          backgroundColor: 'rgba(248, 113, 113, 0.1)',
           borderWidth: 2,
-          pointBackgroundColor: '#94a3b8',
+          pointBackgroundColor: '#f87171',
           pointRadius: 3,
           tension: 0.3,
           fill: true
@@ -155,8 +155,8 @@
           y: {
             grid: { color: '#374151' },
             ticks: { color: '#94a3b8' },
-            min: 621.16,
-            max: 630.77
+            min: 620.00,
+            max: 629.81
           }
         }
       }

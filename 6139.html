@@ -33,7 +33,7 @@
       <div>
         <div class="flex items-center gap-3">
           <span class="bg-blue-600 text-white text-xs px-2.5 py-1 rounded-full font-semibold">半導體業</span>
-          <span class="text-xs text-slate-400">更新時間：2026-10-06 07:01</span>
+          <span class="text-xs text-slate-400">更新時間：2026-10-07 07:51</span>
         </div>
         <h1 class="text-3xl font-bold mt-2 flex items-center gap-3">
           積層科 <span class="text-xl text-slate-400 font-mono">6139.TW</span>
@@ -43,11 +43,11 @@
       <div class="flex items-center gap-6 bg-slate-900/80 px-6 py-4 rounded-xl border border-slate-800">
         <div>
           <div class="text-xs text-slate-400">收盤價 (NTD)</div>
-          <div class="text-3xl font-bold text-success font-mono mt-0.5">790.00</div>
+          <div class="text-3xl font-bold text-success font-mono mt-0.5">795.00</div>
         </div>
         <div class="border-l border-slate-800 pl-6">
           <div class="text-xs text-slate-400">漲跌幅</div>
-          <div class="text-xl font-bold text-success font-mono mt-0.5">▲ 1.90%</div>
+          <div class="text-xl font-bold text-success font-mono mt-0.5">▲ 0.63%</div>
         </div>
       </div>
     </header>
@@ -60,17 +60,17 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
         <div class="text-sm text-slate-400">成交量</div>
-        <div class="text-2xl font-bold font-mono mt-2 text-blue-400">3,971,097</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-blue-400">3,037,107</div>
         <div class="text-xs text-slate-400 mt-1">股</div>
       </div>
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
         <div class="text-sm text-slate-400">漲跌價差</div>
-        <div class="text-2xl font-bold font-mono mt-2 text-success">+15.00</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-success">+5.00</div>
         <div class="text-xs text-slate-400 mt-1">NTD</div>
       </div>
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
         <div class="text-sm text-slate-400">日內高 / 低</div>
-        <div class="text-2xl font-bold font-mono mt-2 text-purple-400">792.64 / 787.06</div>
+        <div class="text-2xl font-bold font-mono mt-2 text-purple-400">797.31 / 792.03</div>
         <div class="text-xs text-slate-400 mt-1">NTD</div>
       </div>
       <div class="bg-cardbg p-5 rounded-xl border border-slate-800 shadow-lg">
@@ -86,8 +86,8 @@
         </h2>
         <div class="space-y-4">
           <div class="border-l-2 border-blue-500 pl-4 py-1">
-            <div class="text-xs text-slate-400">2026-10-06</div>
-            <div class="font-semibold text-sm mt-0.5">積層科 (6139) 收盤 790.00 元，▲ 1.90%</div>
+            <div class="text-xs text-slate-400">2026-10-07</div>
+            <div class="font-semibold text-sm mt-0.5">積層科 (6139) 收盤 795.00 元，▲ 0.63%</div>
             <div class="text-xs text-slate-300 mt-1">台股收報，半導體封裝測試服務股整體走強。</div>
           </div>
         </div>
@@ -124,7 +124,7 @@
   <script>
     const ctx = document.getElementById('priceChart').getContext('2d');
     const labels = ["09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00"];
-    const data = [790.09, 790.86, 788.45, 792.1, 789.43, 791.58, 789.06, 788.2, 787.06, 791.41, 787.13, 788.56, 792.64, 791.75, 787.4, 791.27];
+    const data = [796.27, 793.1, 792.59, 794.17, 796.61, 793.82, 797.31, 795.65, 795.05, 795.65, 795.42, 795.1, 796.88, 796.11, 795.08, 792.03];
     new Chart(ctx, {
       type: 'line',
       data: {
@@ -155,8 +155,8 @@
           y: {
             grid: { color: '#374151' },
             ticks: { color: '#94a3b8' },
-            min: 785.06,
-            max: 794.64
+            min: 790.03,
+            max: 799.31
           }
         }
       }

@@ -1,54 +1,54 @@
 {
   "1434": {
     "symbol": "1434",
-    "price": 17.85,
-    "changePct": -1.96078431372549,
-    "volume": 2063293,
+    "price": 18.0,
+    "changePct": 0.8333333333333334,
+    "volume": 1248094,
     "marketCap": null,
     "pe": null,
     "eps": null
   },
   "2327": {
     "symbol": "2327",
-    "price": 626.0,
-    "changePct": 0.0,
-    "volume": 67379604,
+    "price": 625.0,
+    "changePct": -0.16,
+    "volume": 29671100,
     "marketCap": null,
     "pe": null,
     "eps": null
   },
   "2330": {
     "symbol": "2330",
-    "price": 2575.0,
-    "changePct": 2.912621359223301,
-    "volume": 26800187,
+    "price": 2585.0,
+    "changePct": 0.3868471953578337,
+    "volume": 20801802,
     "marketCap": null,
     "pe": null,
     "eps": null
   },
   "6139": {
     "symbol": "6139",
-    "price": 790.0,
-    "changePct": 1.89873417721519,
-    "volume": 3971097,
+    "price": 795.0,
+    "changePct": 0.628930817610063,
+    "volume": 3037107,
     "marketCap": null,
     "pe": null,
     "eps": null
   },
   "6213": {
     "symbol": "6213",
-    "price": 751.0,
-    "changePct": 9.054593874833555,
-    "volume": 20063879,
+    "price": 787.0,
+    "changePct": 4.5743329097839895,
+    "volume": 32339830,
     "marketCap": null,
     "pe": null,
     "eps": null
   },
   "8299": {
     "symbol": "8299",
-    "price": 2100.0,
-    "changePct": 0.2380952380952381,
-    "volume": 2535692,
+    "price": 2090.0,
+    "changePct": -0.4784688995215311,
+    "volume": 1465050,
     "marketCap": null,
     "pe": null,
     "eps": null
