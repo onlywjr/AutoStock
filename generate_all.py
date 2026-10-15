@@ -65,7 +65,7 @@ def chart_body(history):
         return note, ''
     labels = [h['date'][-5:] for h in history]           # MM-DD
     vals = [h['close'] for h in history]
-    color = '#22c55e' if vals[-1] >= vals[0] else '#ef4444'
+    color = '#ef4444' if vals[-1] >= vals[0] else '#22c55e'  # 台股慣例：紅漲綠跌
     body = '<div class="chartbox"><canvas id="priceChart"></canvas></div>'
     script = (
         '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>\n'
