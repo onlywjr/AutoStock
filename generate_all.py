@@ -113,7 +113,6 @@ def build_stock_page(d: dict) -> str:
         '{{INDUSTRY}}': d.get('industry', '—'),
         '{{DESC}}': d.get('desc', ''),
         '{{DATA_DATE}}': d.get('date', ''),
-        '{{UPDATE_TIME}}': now,
         '{{CLOSE}}': fmt_price(d.get('close', 0)),
         '{{OPEN}}': fmt_price(d.get('open', 0)),
         '{{HIGH}}': fmt_price(d.get('high', 0)),

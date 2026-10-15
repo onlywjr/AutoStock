@@ -259,6 +259,7 @@ def fetch_data(symbol: str) -> dict:
 
     # 公司名稱一律以映射檔為準（TPEx 的 API 名稱也交叉比對過，避免不一致）
     quote['company'] = company
+    quote['full_name'] = info.get('full_name', company)
     quote['industry'] = info.get('industry', '')
     quote['desc'] = info.get('desc', '')
     quote['catalysts'] = info.get('catalysts', [])
