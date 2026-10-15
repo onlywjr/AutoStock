@@ -2,20 +2,201 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>2330 股票儀表板</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台積電 (2330) 股票儀表板</title>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; background: #f8fafc; color: #1e293b; }
-  h1 { border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem; }
-  .price { font-size: 2rem; font-weight: bold; margin: 1rem 0; }
-  .up { color: #ef4444; } .down { color: #22c55e; }
-  .meta { color: #64748b; font-size: 0.9rem; }
+  :root {
+    --bg: #0b1120;
+    --card: #111a2e;
+    --card2: #16213a;
+    --border: #22304f;
+    --text: #e6edf7;
+    --muted: #8b9bb4;
+    --up: #22c55e;
+    --down: #ef4444;
+    --flat: #f59e0b;
+    --accent: #38bdf8;
+    --chip: #1d2a47;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(1200px 500px at 80% -10%, #16233f 0%, var(--bg) 55%) fixed;
+    color: var(--text);
+    font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 28px 20px 40px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  .mono { font-variant-numeric: tabular-nums; font-family: "JetBrains Mono", "Consolas", monospace; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; gap: 12px; flex-wrap: wrap;
+  }
+  .topbar a { color: var(--accent); text-decoration: none; font-size: 14px; }
+  .topbar a:hover { text-decoration: underline; }
+  .stamp { color: var(--muted); font-size: 13px; }
+
+  .hero {
+    background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px 26px;
+    display: flex; justify-content: space-between; align-items: stretch;
+    gap: 24px; flex-wrap: wrap;
+  }
+  .hero .id { display: flex; flex-direction: column; gap: 8px; }
+  .row1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ticker {
+    background: var(--accent); color: #06121f;
+    font-weight: 700; font-size: 13px; letter-spacing: .5px;
+    padding: 3px 12px; border-radius: 999px;
+  }
+  .industry {
+    background: var(--chip); color: var(--text);
+    font-size: 13px; padding: 3px 12px; border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+  .hero h1 { font-size: 30px; font-weight: 700; }
+  .hero h1 small { color: var(--muted); font-size: 16px; font-weight: 400; margin-left: 8px; }
+  .desc { color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 560px; }
+
+  .pricebox {
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(5, 10, 22, .45);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 22px; min-width: 220px;
+  }
+  .pricebox .lbl { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+  .pricebox .val { font-size: 38px; font-weight: 700; line-height: 1.1; }
+  .pricebox .chg { font-size: 17px; font-weight: 600; margin-top: 6px; }
+  .up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--flat); }
+  .pricebox .val.up { color: var(--up); } .pricebox .val.down { color: var(--down); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+  }
+  .card h2 {
+    font-size: 15px; color: var(--muted); font-weight: 600;
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 .bar { width: 4px; height: 16px; border-radius: 2px; background: var(--accent); display: inline-block; }
+
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .metric {
+    background: rgba(5, 10, 22, .4);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .metric .k { color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+  .metric .v { font-size: 17px; font-weight: 700; }
+  .metric .v.up { color: var(--up); } .metric .v.down { color: var(--down); }
+
+  .chartbox { position: relative; height: 260px; }
+  .chart-note { color: var(--muted); font-size: 13px; text-align: center; padding: 60px 0; }
+
+  .catalyst { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .catalyst li {
+    background: rgba(5, 10, 22, .4);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px; line-height: 1.65;
+  }
+  .catalyst li b { color: var(--accent); font-weight: 700; margin-right: 6px; }
+
+  footer {
+    margin-top: 26px; text-align: center;
+    color: #5b6c88; font-size: 12px; line-height: 1.8;
+  }
 </style>
 </head>
 <body>
-<h1>📊 2330 股票儀表板</h1>
-<p class="meta">更新時間：2026-10-15 07:01</p>
-<p class="price">2,490.00 NTD</p>
-<p class="up">▲ 0.00%</p>
-<p class="meta">成交量：28,111,940</p>
+<div class="wrap">
+
+  <div class="topbar">
+    <a href="index.html">← 返回儀表板首頁</a>
+    <span class="stamp">資料日期：2026-10-15 ｜ 更新時間：2026-10-15 23:29</span>
+  </div>
+
+  <div class="hero">
+    <div class="id">
+      <div class="row1">
+        <span class="ticker mono">2330.TW</span>
+        <span class="industry">半導體</span>
+      </div>
+      <h1>台積電<small class="mono"></small></h1>
+      <p class="desc">全球最大晶圓代工廠，先進製程與 CoWoS 封裝技術領先。</p>
+    </div>
+    <div class="pricebox">
+      <div class="lbl">收盤價 (NTD)</div>
+      <div class="val mono down">2,440.00</div>
+      <div class="chg mono down">▼ 50.00 (2.01%)</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="bar"></span>近 5 日收盤走勢</h2>
+      <div class="chartbox"><canvas id="priceChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>盤中重點</h2>
+      <div class="metrics">
+        <div class="metric"><div class="k">開盤</div><div class="v mono">2,420.00</div></div>
+        <div class="metric"><div class="k">最高</div><div class="v mono up">2,450.00</div></div>
+        <div class="metric"><div class="k">最低</div><div class="v mono down">2,420.00</div></div>
+        <div class="metric"><div class="k">前收</div><div class="v mono">2,490.00</div></div>
+        <div class="metric"><div class="k">成交量</div><div class="v mono">5,848.7 萬</div></div>
+        <div class="metric"><div class="k">成交額</div><div class="v mono">1,426.3 億</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+      <h2><span class="bar"></span>投資關注重點</h2>
+      <ul class="catalyst">
+        <li><b>1</b>AI 晶片需求強勁，先進製程 (3/2nm) 與 CoWoS 產能持續擴充</li>
+        <li><b>2</b>美國／日本／歐洲海外廠資本支出與良率進展影響長線報酬</li>
+        <li><b>3</b>先進封裝 (CoWoS/SoIC) 技術領先幅度是競爭關鍵</li>
+        <li><b>4</b>匯率波動與地緣政治風險為主要變數</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    台積電 (2330) 專屬儀表板 ｜ 本頁由 Hermes AI Agent 自動生成並推送至 GitHub<br>
+    數據來源：臺灣證券交易所 (TWSE)、金融櫃買交易所 (TPEx) 公開 API
+  </footer>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const c = document.getElementById("priceChart").getContext("2d");
+new Chart(c, {
+  type: "line",
+  data: { labels: ["10-08", "10-12", "10-13", "10-14", "10-15"],
+    datasets: [{ label: "收盤價 (NTD)", data: [2550.0, 2540.0, 2490.0, 2490.0, 2440.0],
+      borderColor: "#ef4444", backgroundColor: "rgba(56,189,248,0.08)",
+      borderWidth: 2, pointRadius: 4, pointBackgroundColor: "#ef4444",
+      tension: 0.25, fill: true }] },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" } },
+      y: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" }, beginAtZero: false }
+    } }
+});
+</script>
 </body>
 </html>
