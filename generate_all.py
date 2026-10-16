@@ -55,17 +55,67 @@ def load_template(name: str) -> str:
         return f.read()
 
 
-def chart_body(history):
-    """回傳 (CHART_BODY, CHART_SCRIPT)；歷史 < 2 點時改顯示說明。"""
-    if len(history) < 2:
-        note = (
-            '<div class="chart-note">TPEx 公開 API 目前僅提供最新收盤資料，'
-            '暫無近 5 日走勢（資料來源限制）。</div>'
+def fmt_signed(v, suffix='%'):
+    """+12.3% / -4.1% / —"""
+    if v is None:
+        return '—'
+    sign = '+' if v > 0 else ''
+    return f'{sign}{v:,.2f}{suffix}'
+
+
+def perf_class(v):
+    return 'up' if (v or 0) > 0 else ('down' if (v or 0) < 0 else 'flat')
+
+
+def chart_section(d):
+    """回傳 (CHART_TITLE, CHART_BODY, CHART_SCRIPT)。
+
+    優先用 60 日收盤 + MA20（TWSE）；TPEx 無歷史時退回可用點數的圖或說明。
+    """
+    chart = d.get('chart')
+    if chart and len(chart.get('close', [])) >= 2:
+        labels = chart['labels']
+        close = chart['close']
+        ma20 = chart.get('ma20')
+        color = '#ef4444' if close[-1] >= close[0] else '#22c55e'  # 紅漲綠跌
+        title = f"近 {len(close)} 日收盤與 MA20"
+        ma_line = ('\n   { label: "MA20", data: ' + json.dumps(ma20) + ',\n'
+                   '     borderColor: "#f59e0b", borderWidth: 1.5, borderDash: [5,3],\n'
+                   '     pointRadius: 0, fill: false, tension: 0.25 }')
+        body = '<div class="chartbox"><canvas id="priceChart"></canvas></div>'
+        script = (
+            '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>\n'
+            '<script>\n'
+            'const c = document.getElementById("priceChart").getContext("2d");\n'
+            'new Chart(c, {\n'
+            '  type: "line",\n'
+            '  data: { labels: ' + json.dumps(labels) + ',\n'
+            '    datasets: [\n'
+            '     { label: "收盤價 (NTD)", data: ' + json.dumps(close) + ',\n'
+            f'      borderColor: "{color}", backgroundColor: "rgba(56,189,248,0.08)",\n'
+            '      borderWidth: 2, pointRadius: 0, tension: 0.25, fill: true },'
+            + ma_line + '\n'
+            '    ] },\n'
+            '  options: { responsive: true, maintainAspectRatio: false,\n'
+            '    plugins: { legend: { labels: { color: "#8b9bb4" } } },\n'
+            '    scales: {\n'
+            '      x: { ticks: { color: "#8b9bb4", maxTicksLimit: 10 }, grid: { color: "rgba(148,163,184,0.08)" } },\n'
+            '      y: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" }, beginAtZero: false }\n'
+            '    } }\n'
+            '});\n'
+            '</script>'
         )
-        return note, ''
-    labels = [h['date'][-5:] for h in history]           # MM-DD
+        return title, body, script
+
+    # fallback: 僅有短歷史（TPEx）
+    history = d.get('history', [])
+    if len(history) < 2:
+        note = ('<div class="chart-note">TPEx 公開 API 目前僅提供最新收盤資料，'
+                '無歷史走勢可繪（資料來源限制）。</div>')
+        return '股價走勢', note, ''
+    labels = [h['date'][-5:] for h in history]
     vals = [h['close'] for h in history]
-    color = '#ef4444' if vals[-1] >= vals[0] else '#22c55e'  # 台股慣例：紅漲綠跌
+    color = '#ef4444' if vals[-1] >= vals[0] else '#22c55e'
     body = '<div class="chartbox"><canvas id="priceChart"></canvas></div>'
     script = (
         '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>\n'
@@ -80,14 +130,43 @@ def chart_body(history):
         '      tension: 0.25, fill: true }] },\n'
         '  options: { responsive: true, maintainAspectRatio: false,\n'
         '    plugins: { legend: { display: false } },\n'
-        '    scales: {\n'
-        '      x: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" } },\n'
-        '      y: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" }, beginAtZero: false }\n'
-        '    } }\n'
+        '    scales: { x: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" } },\n'
+        '      y: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" }, beginAtZero: false } } }\n'
         '});\n'
         '</script>'
     )
-    return body, script
+    return f"近 {len(vals)} 日收盤走勢", body, script
+
+
+def w52_bar(stats):
+    """52 週區間條（含高低標與 52 週漲跌）。stats 為 None 時顯示說明。"""
+    if not stats or stats.get('high52') is None:
+        return ('<div class="chart-note">上櫃股無歷史資料（TPEx 僅提供最新收盤），'
+                '52 週區間暫無法顯示。</div>')
+    pos = stats.get('pos52', 50)
+    cls = perf_class(stats.get('chg_52w'))
+    return (
+        f'<div class="w52bar" style="--pos:{pos}%"><div class="fill" style="width:{pos}%"></div>'
+        f'<div class="marker" style="left:{pos}%"></div></div>'
+        f'<div class="w52labels"><span>52 週低 <b class="down">{fmt_price(stats["low52"])}</b></span>'
+        f'<span><b class="{cls}">{fmt_signed(stats.get("chg_52w"))}</b>（52 週）</span>'
+        f'<span>52 週高 <b class="up">{fmt_price(stats["high52"])}</b></span></div>'
+    )
+
+
+def perf_items(stats):
+    """階段表現 5 格：52週 / 6月 / 3月 / 1月 / YTD。"""
+    keys = [('52 週', 'chg_52w'), ('6 個月', 'm6'), ('3 個月', 'm3'), ('1 個月', 'm1'), ('今年以來', 'ytd')]
+    if not stats:
+        cells = [f'<div class="cell"><div class="k">{k}</div><div class="v">—</div></div>' for k, _ in keys]
+        return '\n'.join(cells)
+    out = []
+    for label, key in keys:
+        v = stats.get(key)
+        cls = perf_class(v)
+        out.append(f'<div class="cell"><div class="k">{label}</div>'
+                   f'<div class="v mono {cls}">{fmt_signed(v)}</div></div>')
+    return '\n'.join(out)
 
 
 def catalyst_items(catalysts):
@@ -102,8 +181,8 @@ def catalyst_items(catalysts):
 def build_stock_page(d: dict) -> str:
     tpl = load_template('dashboard_template.html')
     cls, sign = change_info(d.get('change', 0), d.get('change_pct', 0))
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-    chart_body_html, chart_script = chart_body(d.get('history', []))
+    stats = d.get('stats') or {}
+    chart_title, chart_body_html, chart_script = chart_section(d)
 
     out = tpl
     replacements = {
@@ -124,9 +203,17 @@ def build_stock_page(d: dict) -> str:
         '{{CHANGE_PCT}}': f"{abs(d.get('change_pct', 0)):,.2f}",
         '{{CHANGE_SIGN}}': sign,
         '{{CHANGE_CLASS}}': cls,
-        '{{HISTORY_DAYS}}': str(len(d.get('history', []))),
+        '{{CHART_TITLE}}': chart_title,
         '{{CHART_BODY}}': chart_body_html,
         '{{CHART_SCRIPT}}': chart_script,
+        '{{W52_BAR}}': w52_bar(stats or None),
+        '{{PERF_ITEMS}}': perf_items(stats or None),
+        '{{MA5}}': fmt_price(stats.get('ma5')) if stats.get('ma5') is not None else '—',
+        '{{MA20}}': fmt_price(stats.get('ma20')) if stats.get('ma20') is not None else '—',
+        '{{MA60}}': fmt_price(stats.get('ma60')) if stats.get('ma60') is not None else '—',
+        '{{VOL30}}': f"{stats['vol30_ann']:,.1f}%" if stats.get('vol30_ann') is not None else '—',
+        '{{AVG_VOL20}}': fmt_volume(stats.get('avg_vol20')) if stats.get('avg_vol20') else '—',
+        '{{VOL_RATIO}}': f"{stats['vol_ratio']:,.2f}x" if stats.get('vol_ratio') is not None else '—',
         '{{CATALYST_ITEMS}}': catalyst_items(d.get('catalysts', [])),
     }
     for k, v in replacements.items():
@@ -151,13 +238,15 @@ def build_index(records) -> str:
         cls, sign = change_info(d.get('change', 0), d.get('change_pct', 0))
         full = html.escape(d.get('full_name', ''))
         name_attr = html.escape(d.get('company', sym))
+        ytd = (d.get('stats') or {}).get('ytd')
+        ytd_cell = f'<span class="{perf_class(ytd)}">YTD {fmt_signed(ytd)}</span>' if ytd is not None else '<span>YTD —</span>'
         cards.append(f'''<a class="card" href="{sym}.html">
   <div class="row1">
     <span class="ticker mono">{sym}.TW</span>
     <span class="industry">{html.escape(d.get("industry", "—"))}</span>
   </div>
   <h3>{name_attr}<small>{full}</small></h3>
-  <div class="meta">資料日期 {html.escape(d.get("date", ""))}<span>成交量 {fmt_volume(d.get("volume", 0))} 股</span></div>
+  <div class="meta">資料日期 {html.escape(d.get("date", ""))}<span>成交量 {fmt_volume(d.get("volume", 0))} 股</span>{ytd_cell}</div>
   <div class="pricerow">
     <span class="price mono {cls}">{fmt_price(d.get("close", 0))}</span>
     <span class="chg mono {cls}">{sign} {fmt_price(abs(d.get("change", 0)))} ({abs(d.get("change_pct", 0)):,.2f}%)</span>

@@ -102,6 +102,20 @@
   .chartbox { position: relative; height: 260px; }
   .chart-note { color: var(--muted); font-size: 13px; text-align: center; padding: 60px 0; }
 
+  /* 52 週區間條 */
+  .w52bar { position: relative; height: 12px; background: var(--chip); border-radius: 6px; margin: 26px 0 10px; }
+  .w52bar .fill { position: absolute; inset: 0 auto 0 0; width: var(--pos); background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444); opacity: .55; border-radius: 6px; }
+  .w52bar .marker { position: absolute; top: -6px; left: var(--pos); width: 3px; height: 24px; background: #fff; border-radius: 2px; box-shadow: 0 0 6px rgba(0,0,0,.8); }
+  .w52labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+  .w52labels b.up { color: var(--up); } .w52labels b.down { color: var(--down); }
+
+  /* 階段表現 */
+  .perf { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  @media (max-width: 700px) { .perf { grid-template-columns: repeat(3, 1fr); } }
+  .perf .cell { background: rgba(5, 10, 22, .4); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+  .perf .k { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .perf .v { font-size: 18px; font-weight: 700; }
+
   .catalyst { list-style: none; display: flex; flex-direction: column; gap: 12px; }
   .catalyst li {
     background: rgba(5, 10, 22, .4);
@@ -145,7 +159,7 @@
 
   <div class="grid">
     <div class="card">
-      <h2><span class="bar"></span>近 {{HISTORY_DAYS}} 日收盤走勢</h2>
+      <h2><span class="bar"></span>{{CHART_TITLE}}</h2>
       {{CHART_BODY}}
     </div>
 
@@ -162,6 +176,34 @@
     </div>
   </div>
 
+  <div class="grid">
+    <div class="card">
+      <h2><span class="bar"></span>52 週區間</h2>
+      {{W52_BAR}}
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>階段表現</h2>
+      <div class="perf">
+        {{PERF_ITEMS}}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+      <h2><span class="bar"></span>技術面與量能</h2>
+      <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="metric"><div class="k">MA5</div><div class="v mono">{{MA5}}</div></div>
+        <div class="metric"><div class="k">MA20</div><div class="v mono">{{MA20}}</div></div>
+        <div class="metric"><div class="k">MA60</div><div class="v mono">{{MA60}}</div></div>
+        <div class="metric"><div class="k">年化波動率 (30日)</div><div class="v mono">{{VOL30}}</div></div>
+        <div class="metric"><div class="k">20日均量</div><div class="v mono">{{AVG_VOL20}}</div></div>
+        <div class="metric"><div class="k">今量 / 20日均量</div><div class="v mono">{{VOL_RATIO}}</div></div>
+      </div>
+    </div>
+  </div>
+
   <div class="grid" style="grid-template-columns: 1fr;">
     <div class="card">
       <h2><span class="bar"></span>投資關注重點</h2>
@@ -173,7 +215,7 @@
 
   <footer>
     {{COMPANY_NAME}} ({{TICKER}}) 專屬儀表板 ｜ 本頁由 Hermes AI Agent 自動生成並推送至 GitHub<br>
-    數據來源：臺灣證券交易所 (TWSE)、金融櫃買交易所 (TPEx) 公開 API
+    數據來源：TWSE / TPEx 公開 API（日K 歷史、收盤行情、52 週區間與均線皆由日K 衍生計算）
   </footer>
 
 </div>

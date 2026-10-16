@@ -43,6 +43,14 @@ python auto_update.py         # 產頁面 + push（等同排程）
 
 ## 資料來源與限制
 
-- 上市股（TWSE）：可取近 5 交易日歷史；
-- 上櫃股（TPEx）：公開 API 只回傳最新收盤，走勢圖會顯示說明；
-- 本機 SSL 憑證庫偶發異常，`fetch_stock.py` 已內建自動重試（CERT_NONE fallback）。
+**可用（實際驗證過）：**
+- **TWSE `STOCK_DAY`**：收盤日K。`date=YYYYMM01` 可取整月資料 → 12 次呼叫取得一年歷史，衍生出 52 週高低、MA5/20/60、1/3/6 個月與 YTD 漲跌、30 日年化波動率、20 日均量
+- **TPEx `tpex_mainboard_daily_close_quotes`**：上櫃股**最新一日**收盤（含開高收低量額）；對任意日期參數都回傳最新資料，無歷史
+
+**已失效（回 404，勿使用）：**
+- TWSE `STOCK_hour`（分時）、`STOCK_MAR`、`EPB`、`TWII` 等 exchangeReport 端點
+- TWSE openapi.twse.com.tw 全部端點（EPS/PER/股利/大盤快照）
+- TWSE `listDaily*` / `center/day/*.json` 週列表
+- TPEx 其他 openapi（realtime、opening、traded_volume）
+
+**因此 8299（上櫃）無 52 週區間與技術指標，頁面顯示「—」屬正常。**

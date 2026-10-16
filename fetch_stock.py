@@ -18,7 +18,7 @@ fetch_stock.py — 單一股票資料取得層（AutoStock 重構版）
 SSL 說明: 本機環境 SSL 驗證時好時壞（Missing Subject Key Identifier），
 因此 _get_json 先走預設 context，失敗時自動以 CERT_NONE 重試。
 """
-import sys, json, ssl, os, re, datetime, urllib.request
+import sys, json, ssl, os, re, time, datetime, urllib.request
 
 REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -114,6 +114,106 @@ def fetch_twse(symbol: str, company: str = '') -> dict:
         'volume': _int(last.get('成交股數')),
         'amount': _int(last.get('成交金額')),
         'history': history,
+    }
+
+
+def fetch_twse_year(symbol: str) -> list:
+    """以「整月」方式逐月呼叫 STOCK_DAY，回傳近 12 個月的日K（時間正序）。
+
+    回傳: [{'date': 'YYYY-MM-DD', 'close': float, 'volume': int}, ...]
+    """
+    today = datetime.date.today()
+    months = []
+    y, m = today.year, today.month
+    for i in range(11, -1, -1):
+        mm = m - i
+        yy = y + (mm - 1) // 12
+        mm = (mm - 1) % 12 + 1
+        months.append((yy, mm))
+
+    out, seen = [], set()
+    for yy, mm in months:
+        url = (f"https://www.twse.com.tw/exchangeReport/STOCK_DAY"
+               f"?response=json&date={yy}{mm:02d}01&stockNo={symbol}")
+        try:
+            data = _get_json(url)
+        except Exception:
+            time.sleep(1)
+            continue
+        rows = data.get('data') or []
+        if not rows:
+            continue
+        fields = data.get('fields') or []
+        for r in rows:
+            rec = dict(zip(fields, r))
+            d = _norm_date(rec.get('日期', ''))
+            close = _num(rec.get('收盤價'))
+            if not d or close <= 0 or d in seen:
+                continue
+            seen.add(d)
+            out.append({'date': d, 'close': close, 'volume': _int(rec.get('成交股數'))})
+        time.sleep(0.2)
+    out.sort(key=lambda x: x['date'])
+    return out
+
+
+def _rolling_ma(closes, k):
+    """與 closes 等長的 MA 序列；前 k-1 點為 None。"""
+    out = []
+    for i in range(len(closes)):
+        if i + 1 < k:
+            out.append(None)
+        else:
+            out.append(round(sum(closes[i + 1 - k:i + 1]) / k, 2))
+    return out
+
+
+def compute_stats(series):
+    """由日K系列衍生統計值；無資料回 None。
+
+    series: [{'date','close','volume'}] 時間正序（約 240 點）。
+    """
+    if not series:
+        return None
+    closes = [r['close'] for r in series]
+    vols = [r['volume'] for r in series]
+    n = len(closes)
+    last = closes[-1]
+
+    def ma(k):
+        return round(sum(closes[-k:]) / k, 2) if n >= k else None
+
+    def chg(k):
+        if n > k and closes[-1 - k]:
+            return round((last - closes[-1 - k]) / closes[-1 - k] * 100, 2)
+        return None
+
+    high52, low52 = max(closes), min(closes)
+    pos52 = round((last - low52) / (high52 - low52) * 100, 1) if high52 > low52 else 50.0
+
+    vol30 = None
+    if n >= 31:
+        rets = [((closes[i] - closes[i - 1]) / closes[i - 1]) for i in range(n - 30, n) if closes[i - 1]]
+        if len(rets) >= 20:
+            mean = sum(rets) / len(rets)
+            var = sum((x - mean) ** 2 for x in rets) / len(rets)
+            vol30 = round((var ** 0.5) * (252 ** 0.5) * 100, 1)
+
+    this_year = series[-1]['date'][:4]
+    prev_closes = [r['close'] for r in series if r['date'][:4] == str(int(this_year) - 1)]
+    ytd = round((last - prev_closes[-1]) / prev_closes[-1] * 100, 2) if prev_closes else None
+
+    avg_vol20 = int(sum(vols[-20:]) / min(20, len(vols))) if vols else None
+    vol_ratio = round(vols[-1] / avg_vol20, 2) if avg_vol20 else None
+
+    return {
+        'n_days': n,
+        'ma5': ma(5), 'ma20': ma(20), 'ma60': ma(60),
+        'high52': high52, 'low52': low52, 'pos52': pos52,
+        'chg_52w': round((last - closes[0]) / closes[0] * 100, 2) if closes[0] else None,
+        'm1': chg(21), 'm3': chg(63), 'm6': chg(126), 'ytd': ytd,
+        'vol30_ann': vol30,
+        'avg_vol20': avg_vol20, 'vol_ratio': vol_ratio,
     }
 
 
@@ -254,8 +354,23 @@ def fetch_data(symbol: str) -> dict:
 
     if symbol in TPEX_TICKERS:
         quote = fetch_tpex(symbol, company)
+        # TPEx 公開 API 只有最新一日收盤，無歷史 → 統計值皆為 None
+        quote['stats'] = None
+        quote['chart'] = None
     else:
         quote = fetch_twse(symbol, company)
+        yser = fetch_twse_year(symbol)
+        quote['stats'] = compute_stats(yser)
+        # 圖表：近 60 個交易日收盤 + MA20（MA20 用完整年序列算，避免前段缺值）
+        closes = [r['close'] for r in yser]
+        ma20_all = _rolling_ma(closes, 20)
+        seg = yser[-60:]
+        quote['chart'] = {
+            'labels': [r['date'][5:] for r in seg],
+            'close': [r['close'] for r in seg],
+            'ma20': ma20_all[-60:],
+        }
+        quote['year_series'] = yser  # 供 data/*.json 存檔與除錯
 
     # 公司名稱一律以映射檔為準（TPEx 的 API 名稱也交叉比對過，避免不一致）
     quote['company'] = company

@@ -102,6 +102,20 @@
   .chartbox { position: relative; height: 260px; }
   .chart-note { color: var(--muted); font-size: 13px; text-align: center; padding: 60px 0; }
 
+  /* 52 週區間條 */
+  .w52bar { position: relative; height: 12px; background: var(--chip); border-radius: 6px; margin: 26px 0 10px; }
+  .w52bar .fill { position: absolute; inset: 0 auto 0 0; width: var(--pos); background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444); opacity: .55; border-radius: 6px; }
+  .w52bar .marker { position: absolute; top: -6px; left: var(--pos); width: 3px; height: 24px; background: #fff; border-radius: 2px; box-shadow: 0 0 6px rgba(0,0,0,.8); }
+  .w52labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+  .w52labels b.up { color: var(--up); } .w52labels b.down { color: var(--down); }
+
+  /* 階段表現 */
+  .perf { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  @media (max-width: 700px) { .perf { grid-template-columns: repeat(3, 1fr); } }
+  .perf .cell { background: rgba(5, 10, 22, .4); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+  .perf .k { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .perf .v { font-size: 18px; font-weight: 700; }
+
   .catalyst { list-style: none; display: flex; flex-direction: column; gap: 12px; }
   .catalyst li {
     background: rgba(5, 10, 22, .4);
@@ -145,7 +159,7 @@
 
   <div class="grid">
     <div class="card">
-      <h2><span class="bar"></span>近 5 日收盤走勢</h2>
+      <h2><span class="bar"></span>近 60 日收盤與 MA20</h2>
       <div class="chartbox"><canvas id="priceChart"></canvas></div>
     </div>
 
@@ -158,6 +172,38 @@
         <div class="metric"><div class="k">前收</div><div class="v mono">20.10</div></div>
         <div class="metric"><div class="k">成交量</div><div class="v mono">349.9 萬</div></div>
         <div class="metric"><div class="k">成交額</div><div class="v mono">7,083 萬</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="bar"></span>52 週區間</h2>
+      <div class="w52bar" style="--pos:95.1%"><div class="fill" style="width:95.1%"></div><div class="marker" style="left:95.1%"></div></div><div class="w52labels"><span>52 週低 <b class="down">14.60</b></span><span><b class="up">+38.31%</b>（52 週）</span><span>52 週高 <b class="up">20.70</b></span></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>階段表現</h2>
+      <div class="perf">
+        <div class="cell"><div class="k">52 週</div><div class="v mono up">+38.31%</div></div>
+<div class="cell"><div class="k">6 個月</div><div class="v mono up">+21.79%</div></div>
+<div class="cell"><div class="k">3 個月</div><div class="v mono up">+4.88%</div></div>
+<div class="cell"><div class="k">1 個月</div><div class="v mono up">+15.58%</div></div>
+<div class="cell"><div class="k">今年以來</div><div class="v mono up">+28.30%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+      <h2><span class="bar"></span>技術面與量能</h2>
+      <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="metric"><div class="k">MA5</div><div class="v mono">20.13</div></div>
+        <div class="metric"><div class="k">MA20</div><div class="v mono">18.61</div></div>
+        <div class="metric"><div class="k">MA60</div><div class="v mono">18.11</div></div>
+        <div class="metric"><div class="k">年化波動率 (30日)</div><div class="v mono">27.0%</div></div>
+        <div class="metric"><div class="k">20日均量</div><div class="v mono">390.0 萬</div></div>
+        <div class="metric"><div class="k">今量 / 20日均量</div><div class="v mono">0.90x</div></div>
       </div>
     </div>
   </div>
@@ -176,7 +222,7 @@
 
   <footer>
     福懋興業 (1434) 專屬儀表板 ｜ 本頁由 Hermes AI Agent 自動生成並推送至 GitHub<br>
-    數據來源：臺灣證券交易所 (TWSE)、金融櫃買交易所 (TPEx) 公開 API
+    數據來源：TWSE / TPEx 公開 API（日K 歷史、收盤行情、52 週區間與均線皆由日K 衍生計算）
   </footer>
 
 </div>
@@ -185,15 +231,19 @@
 const c = document.getElementById("priceChart").getContext("2d");
 new Chart(c, {
   type: "line",
-  data: { labels: ["10-12", "10-13", "10-14", "10-15", "10-16"],
-    datasets: [{ label: "收盤價 (NTD)", data: [19.45, 20.0, 20.7, 20.1, 20.4],
+  data: { labels: ["07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24", "08-25", "08-26", "08-27", "08-28", "08-31", "09-01", "09-02", "09-03", "09-04", "09-07", "09-08", "09-09", "09-10", "09-11", "09-14", "09-15", "09-16", "09-17", "09-18", "09-21", "09-22", "09-23", "09-24", "09-29", "09-30", "10-01", "10-02", "10-05", "10-06", "10-07", "10-08", "10-12", "10-13", "10-14", "10-15", "10-16"],
+    datasets: [
+     { label: "收盤價 (NTD)", data: [19.2, 19.5, 19.15, 18.5, 18.0, 17.6, 17.35, 17.25, 17.1, 17.35, 17.25, 17.1, 17.25, 17.7, 17.75, 17.7, 17.6, 17.5, 17.6, 17.55, 17.5, 17.7, 18.1, 17.75, 17.7, 17.9, 18.05, 17.85, 18.15, 18.35, 18.25, 18.1, 18.2, 18.1, 17.8, 18.15, 18.0, 17.8, 17.65, 17.5, 17.5, 17.85, 17.8, 18.0, 17.95, 17.9, 17.95, 18.0, 18.15, 17.95, 18.2, 17.85, 18.0, 18.95, 19.45, 19.45, 20.0, 20.7, 20.1, 20.4],
       borderColor: "#ef4444", backgroundColor: "rgba(56,189,248,0.08)",
-      borderWidth: 2, pointRadius: 4, pointBackgroundColor: "#ef4444",
-      tension: 0.25, fill: true }] },
+      borderWidth: 2, pointRadius: 0, tension: 0.25, fill: true },
+   { label: "MA20", data: [18.14, 18.27, 18.36, 18.45, 18.5, 18.53, 18.55, 18.54, 18.45, 18.37, 18.33, 18.28, 18.26, 18.22, 18.19, 18.1, 18.0, 17.92, 17.87, 17.8, 17.71, 17.62, 17.57, 17.54, 17.52, 17.53, 17.57, 17.6, 17.65, 17.7, 17.75, 17.8, 17.85, 17.87, 17.87, 17.9, 17.91, 17.93, 17.93, 17.93, 17.93, 17.94, 17.92, 17.94, 17.95, 17.95, 17.94, 17.95, 17.95, 17.93, 17.93, 17.91, 17.9, 17.95, 18.03, 18.09, 18.2, 18.34, 18.46, 18.61],
+     borderColor: "#f59e0b", borderWidth: 1.5, borderDash: [5,3],
+     pointRadius: 0, fill: false, tension: 0.25 }
+    ] },
   options: { responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: { legend: { labels: { color: "#8b9bb4" } } },
     scales: {
-      x: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" } },
+      x: { ticks: { color: "#8b9bb4", maxTicksLimit: 10 }, grid: { color: "rgba(148,163,184,0.08)" } },
       y: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" }, beginAtZero: false }
     } }
 });

@@ -102,6 +102,20 @@
   .chartbox { position: relative; height: 260px; }
   .chart-note { color: var(--muted); font-size: 13px; text-align: center; padding: 60px 0; }
 
+  /* 52 週區間條 */
+  .w52bar { position: relative; height: 12px; background: var(--chip); border-radius: 6px; margin: 26px 0 10px; }
+  .w52bar .fill { position: absolute; inset: 0 auto 0 0; width: var(--pos); background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444); opacity: .55; border-radius: 6px; }
+  .w52bar .marker { position: absolute; top: -6px; left: var(--pos); width: 3px; height: 24px; background: #fff; border-radius: 2px; box-shadow: 0 0 6px rgba(0,0,0,.8); }
+  .w52labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+  .w52labels b.up { color: var(--up); } .w52labels b.down { color: var(--down); }
+
+  /* 階段表現 */
+  .perf { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  @media (max-width: 700px) { .perf { grid-template-columns: repeat(3, 1fr); } }
+  .perf .cell { background: rgba(5, 10, 22, .4); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+  .perf .k { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .perf .v { font-size: 18px; font-weight: 700; }
+
   .catalyst { list-style: none; display: flex; flex-direction: column; gap: 12px; }
   .catalyst li {
     background: rgba(5, 10, 22, .4);
@@ -145,7 +159,7 @@
 
   <div class="grid">
     <div class="card">
-      <h2><span class="bar"></span>近 5 日收盤走勢</h2>
+      <h2><span class="bar"></span>近 60 日收盤與 MA20</h2>
       <div class="chartbox"><canvas id="priceChart"></canvas></div>
     </div>
 
@@ -158,6 +172,38 @@
         <div class="metric"><div class="k">前收</div><div class="v mono">799.00</div></div>
         <div class="metric"><div class="k">成交量</div><div class="v mono">494.8 萬</div></div>
         <div class="metric"><div class="k">成交額</div><div class="v mono">38.7 億</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="bar"></span>52 週區間</h2>
+      <div class="w52bar" style="--pos:89.2%"><div class="fill" style="width:89.2%"></div><div class="marker" style="left:89.2%"></div></div><div class="w52labels"><span>52 週低 <b class="down">99.60</b></span><span><b class="up">+547.70%</b>（52 週）</span><span>52 週高 <b class="up">856.00</b></span></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>階段表現</h2>
+      <div class="perf">
+        <div class="cell"><div class="k">52 週</div><div class="v mono up">+547.70%</div></div>
+<div class="cell"><div class="k">6 個月</div><div class="v mono up">+237.25%</div></div>
+<div class="cell"><div class="k">3 個月</div><div class="v mono up">+138.15%</div></div>
+<div class="cell"><div class="k">1 個月</div><div class="v mono up">+50.29%</div></div>
+<div class="cell"><div class="k">今年以來</div><div class="v mono up">+581.94%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+      <h2><span class="bar"></span>技術面與量能</h2>
+      <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="metric"><div class="k">MA5</div><div class="v mono">807.20</div></div>
+        <div class="metric"><div class="k">MA20</div><div class="v mono">675.75</div></div>
+        <div class="metric"><div class="k">MA60</div><div class="v mono">522.57</div></div>
+        <div class="metric"><div class="k">年化波動率 (30日)</div><div class="v mono">70.9%</div></div>
+        <div class="metric"><div class="k">20日均量</div><div class="v mono">1,702.1 萬</div></div>
+        <div class="metric"><div class="k">今量 / 20日均量</div><div class="v mono">0.29x</div></div>
       </div>
     </div>
   </div>
@@ -176,7 +222,7 @@
 
   <footer>
     聯茂 (6213) 專屬儀表板 ｜ 本頁由 Hermes AI Agent 自動生成並推送至 GitHub<br>
-    數據來源：臺灣證券交易所 (TWSE)、金融櫃買交易所 (TPEx) 公開 API
+    數據來源：TWSE / TPEx 公開 API（日K 歷史、收盤行情、52 週區間與均線皆由日K 衍生計算）
   </footer>
 
 </div>
@@ -185,15 +231,19 @@
 const c = document.getElementById("priceChart").getContext("2d");
 new Chart(c, {
   type: "line",
-  data: { labels: ["10-12", "10-13", "10-14", "10-15", "10-16"],
-    datasets: [{ label: "收盤價 (NTD)", data: [812.0, 795.0, 856.0, 799.0, 774.0],
-      borderColor: "#22c55e", backgroundColor: "rgba(56,189,248,0.08)",
-      borderWidth: 2, pointRadius: 4, pointBackgroundColor: "#22c55e",
-      tension: 0.25, fill: true }] },
+  data: { labels: ["07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24", "08-25", "08-26", "08-27", "08-28", "08-31", "09-01", "09-02", "09-03", "09-04", "09-07", "09-08", "09-09", "09-10", "09-11", "09-14", "09-15", "09-16", "09-17", "09-18", "09-21", "09-22", "09-23", "09-24", "09-29", "09-30", "10-01", "10-02", "10-05", "10-06", "10-07", "10-08", "10-12", "10-13", "10-14", "10-15", "10-16"],
+    datasets: [
+     { label: "收盤價 (NTD)", data: [367.0, 343.5, 309.5, 307.0, 276.5, 249.0, 239.5, 263.0, 289.0, 310.0, 341.0, 375.0, 389.0, 427.5, 452.0, 464.0, 469.0, 480.0, 481.0, 488.0, 484.0, 510.0, 513.0, 482.5, 530.0, 583.0, 563.0, 582.0, 548.0, 550.0, 536.0, 512.0, 517.0, 513.0, 510.0, 523.0, 519.0, 509.0, 515.0, 519.0, 550.0, 495.0, 505.0, 542.0, 543.0, 541.0, 595.0, 620.0, 623.0, 642.0, 683.0, 751.0, 787.0, 796.0, 806.0, 812.0, 795.0, 856.0, 799.0, 774.0],
+      borderColor: "#ef4444", backgroundColor: "rgba(56,189,248,0.08)",
+      borderWidth: 2, pointRadius: 0, tension: 0.25, fill: true },
+   { label: "MA20", data: [355.32, 357.05, 355.55, 353.57, 350.2, 344.12, 338.1, 333.32, 328.07, 323.77, 321.88, 320.95, 321.15, 324.55, 329.73, 336.18, 343.38, 351.43, 359.35, 366.02, 371.88, 380.2, 390.38, 399.15, 411.82, 428.52, 444.7, 460.65, 473.6, 485.6, 495.35, 502.2, 508.6, 512.88, 515.77, 518.73, 521.23, 522.67, 524.38, 525.92, 529.23, 528.48, 528.08, 531.05, 531.7, 529.6, 531.2, 533.1, 536.85, 541.45, 548.8, 560.75, 574.25, 588.4, 603.2, 617.65, 631.45, 648.8, 663.0, 675.75],
+     borderColor: "#f59e0b", borderWidth: 1.5, borderDash: [5,3],
+     pointRadius: 0, fill: false, tension: 0.25 }
+    ] },
   options: { responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: { legend: { labels: { color: "#8b9bb4" } } },
     scales: {
-      x: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" } },
+      x: { ticks: { color: "#8b9bb4", maxTicksLimit: 10 }, grid: { color: "rgba(148,163,184,0.08)" } },
       y: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" }, beginAtZero: false }
     } }
 });
