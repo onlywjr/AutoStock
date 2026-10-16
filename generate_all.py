@@ -38,10 +38,10 @@ def fmt_amount(x):
 
 
 def fmt_volume(x):
-    """成交股數 → 張（1 張 = 100 股）。≥1 萬張顯示「X.X 萬張」。"""
+    """成交股數 → 張（1 張 = 1,000 股，TWSE 標準交易單位）。≥1 萬張顯示「X.X 萬張」。"""
     if not x:
         return '—'
-    lots = x / 100
+    lots = x / 1000
     if lots >= 10000:
         return f'{lots / 10000:,.1f} 萬張'
     return f'{lots:,.0f} 張'
