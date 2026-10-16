@@ -38,10 +38,13 @@ def fmt_amount(x):
 
 
 def fmt_volume(x):
+    """成交股數 → 張（1 張 = 100 股）。≥1 萬張顯示「X.X 萬張」。"""
     if not x:
         return '—'
-    wan = x / 1e4
-    return f'{wan:,.1f} 萬'
+    lots = x / 100
+    if lots >= 10000:
+        return f'{lots / 10000:,.1f} 萬張'
+    return f'{lots:,.0f} 張'
 
 
 def change_info(change, pct):
@@ -246,7 +249,7 @@ def build_index(records) -> str:
     <span class="industry">{html.escape(d.get("industry", "—"))}</span>
   </div>
   <h3>{name_attr}<small>{full}</small></h3>
-  <div class="meta">資料日期 {html.escape(d.get("date", ""))}<span>成交量 {fmt_volume(d.get("volume", 0))} 股</span>{ytd_cell}</div>
+  <div class="meta">資料日期 {html.escape(d.get("date", ""))}<span>成交量 {fmt_volume(d.get("volume", 0))}</span>{ytd_cell}</div>
   <div class="pricerow">
     <span class="price mono {cls}">{fmt_price(d.get("close", 0))}</span>
     <span class="chg mono {cls}">{sign} {fmt_price(abs(d.get("change", 0)))} ({abs(d.get("change_pct", 0)):,.2f}%)</span>
