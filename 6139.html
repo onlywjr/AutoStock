@@ -124,7 +124,7 @@
 
   <div class="topbar">
     <a href="index.html">← 返回儀表板首頁</a>
-    <span class="stamp">資料日期：2026-10-15</span>
+    <span class="stamp">資料日期：2026-10-16</span>
   </div>
 
   <div class="hero">
@@ -138,8 +138,8 @@
     </div>
     <div class="pricebox">
       <div class="lbl">收盤價 (NTD)</div>
-      <div class="val mono down">690.00</div>
-      <div class="chg mono down">▼ 30.00 (4.17%)</div>
+      <div class="val mono down">677.00</div>
+      <div class="chg mono down">▼ 13.00 (1.88%)</div>
     </div>
   </div>
 
@@ -152,12 +152,12 @@
     <div class="card">
       <h2><span class="bar"></span>盤中重點</h2>
       <div class="metrics">
-        <div class="metric"><div class="k">開盤</div><div class="v mono">699.00</div></div>
-        <div class="metric"><div class="k">最高</div><div class="v mono up">699.00</div></div>
-        <div class="metric"><div class="k">最低</div><div class="v mono down">681.00</div></div>
-        <div class="metric"><div class="k">前收</div><div class="v mono">720.00</div></div>
-        <div class="metric"><div class="k">成交量</div><div class="v mono">376.2 萬</div></div>
-        <div class="metric"><div class="k">成交額</div><div class="v mono">25.9 億</div></div>
+        <div class="metric"><div class="k">開盤</div><div class="v mono">693.00</div></div>
+        <div class="metric"><div class="k">最高</div><div class="v mono up">695.00</div></div>
+        <div class="metric"><div class="k">最低</div><div class="v mono down">676.00</div></div>
+        <div class="metric"><div class="k">前收</div><div class="v mono">690.00</div></div>
+        <div class="metric"><div class="k">成交量</div><div class="v mono">287.7 萬</div></div>
+        <div class="metric"><div class="k">成交額</div><div class="v mono">19.7 億</div></div>
       </div>
     </div>
   </div>
@@ -185,8 +185,8 @@
 const c = document.getElementById("priceChart").getContext("2d");
 new Chart(c, {
   type: "line",
-  data: { labels: ["10-08", "10-12", "10-13", "10-14", "10-15"],
-    datasets: [{ label: "收盤價 (NTD)", data: [778.0, 750.0, 718.0, 720.0, 690.0],
+  data: { labels: ["10-12", "10-13", "10-14", "10-15", "10-16"],
+    datasets: [{ label: "收盤價 (NTD)", data: [750.0, 718.0, 720.0, 690.0, 677.0],
       borderColor: "#22c55e", backgroundColor: "rgba(56,189,248,0.08)",
       borderWidth: 2, pointRadius: 4, pointBackgroundColor: "#22c55e",
       tension: 0.25, fill: true }] },
