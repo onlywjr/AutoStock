@@ -22,7 +22,7 @@ AutoStock/
 
 ## 每日流程（cron）
 
-排程每天 07:00 執行 `auto_update.py`：
+排程每天 16:00 執行 `auto_update.py`：
 1. `generate_all.py` 抓六檔股票最新收盤並重繪所有頁面；
 2. 若有任何檔案變更，自動 `git commit` + `git push origin master`；
 3. 休市日資料全同時自動跳過 commit。
