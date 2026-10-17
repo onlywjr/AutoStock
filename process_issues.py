@@ -25,6 +25,38 @@ TICKERS_FILE = os.path.join(REPO_ROOT, 'ticker_company.json')
 GIT = ['git', '-C', REPO_ROOT]
 GH = ['gh', '-R', 'onlywjr/AutoStock']
 LABEL = 'bot:stock-update'
+LOCK_PATH = os.path.join(REPO_ROOT, '.process_issues.lock')
+LOCK_TIMEOUT_S = 900  # 等鎖最久 15 分鐘（generate_all.py 可能很慢）
+
+
+def acquire_lock():
+    """Windows 排他鎖：避免排程/手動同時執行造成 git 衝突。"""
+    import msvcrt, time
+    f = open(LOCK_PATH, 'w')
+    deadline = time.time() + LOCK_TIMEOUT_S
+    while True:
+        try:
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+            f.write(str(os.getpid()))
+            f.flush()
+            return f
+        except OSError:
+            if time.time() >= deadline:
+                f.close()
+                return None
+            time.sleep(5)
+
+
+def release_lock(f):
+    if f is None:
+        return
+    try:
+        import msvcrt
+        f.seek(0)
+        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+    except Exception:
+        pass
+    f.close()
 
 
 def run(cmd, timeout=120, env=None):
@@ -237,4 +269,11 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    lock = acquire_lock()
+    if lock is None:
+        print('LOCK: 其他執行中鎖定 .process_issues.lock（已等待 15 分鐘），本次跳過')
+        sys.exit(0)
+    try:
+        sys.exit(main())
+    finally:
+        release_lock(lock)

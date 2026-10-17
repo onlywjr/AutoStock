@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 .DS_Store
 .autostock.lock
+.process_issues.lock
 .env
 logs/*
 !logs/.gitkeep
