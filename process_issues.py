@@ -27,6 +27,25 @@ GH = ['gh', '-R', 'onlywjr/AutoStock']
 LABEL = 'bot:stock-update'
 LOCK_PATH = os.path.join(REPO_ROOT, '.process_issues.lock')
 LOCK_TIMEOUT_S = 900  # 等鎖最久 15 分鐘（generate_all.py 可能很慢）
+LOG_FILE = os.path.join(REPO_ROOT, 'logs', 'process_issues.log')
+
+
+class _Tee:
+    """同時寫到 console 與 log 檔案。"""
+    def __init__(self, *streams):
+        self.streams = streams
+    def write(self, data):
+        for s in self.streams:
+            try:
+                s.write(data)
+            except Exception:
+                pass
+    def flush(self):
+        for s in self.streams:
+            try:
+                s.flush()
+            except Exception:
+                pass
 
 
 def acquire_lock():
@@ -223,19 +242,26 @@ def close_issue(number: int, comment: str = '') -> None:
 
 def main():
     dry_run = '--dry-run' in sys.argv
-    print(f'=== process_issues {datetime.datetime.now():%Y-%m-%d %H:%M} {"(dry-run)" if dry_run else ""} ===')
-
     issues = list_issues()
     if not issues:
-        print('無待處理 Issue')
+        print('無待處理 Issue')   # 僅 console（排程的 bat 會丟棄此輸出）；不寫 log
         return 0
 
+    # 有工作要做 → 將後續處理明細寫入 log
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+    logf = open(LOG_FILE, 'a', encoding='utf-8')
+    real_stdout = sys.stdout
+    sys.stdout = _Tee(real_stdout, logf)
+
+    print(f'=== process_issues {datetime.datetime.now():%Y-%m-%d %H:%M} {"(dry-run)" if dry_run else ""} ===')
     print(f'找到 {len(issues)} 個待處理 Issue:')
     for issue in issues:
         print(f'  #{issue["number"]}: {issue["title"]}')
 
     if dry_run:
         print('(dry-run 模式，不執行修改)')
+        sys.stdout = real_stdout
+        logf.close()
         return 0
 
     changed = False
@@ -259,12 +285,18 @@ def main():
     if changed:
         if not regenerate():
             print('[ERROR] 頁面重新產生失敗，跳過 push')
+            sys.stdout = real_stdout
+            logf.close()
             return 1
         if not commit_and_push():
             print('[ERROR] push 失敗')
+            sys.stdout = real_stdout
+            logf.close()
             return 1
 
     print('DONE')
+    sys.stdout = real_stdout
+    logf.close()
     return 0
 
 
