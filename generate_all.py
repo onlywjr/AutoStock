@@ -321,13 +321,13 @@ def build_custom_cards(records: dict, inst: dict) -> str:
         inst_date   = html.escape(str(inst_d.get('date', '')))
         net_cls = perf_class(total_net)
         inst_html = (f'<div class="instrow"><span class="instk">外資</span>'
-                     f'<span class="instv {perf_class(foreign_net)}">{fmt_net(foreign_net)}</span></div>'
+                     f'<span class="instv {perf_class(foreign_net)}">{fmt_lot(foreign_net)}</span></div>'
                      f'<div class="instrow"><span class="instk">投信</span>'
-                     f'<span class="instv {perf_class(trust_net)}">{fmt_net(trust_net)}</span></div>'
+                     f'<span class="instv {perf_class(trust_net)}">{fmt_lot(trust_net)}</span></div>'
                      f'<div class="instrow"><span class="instk">自營</span>'
-                     f'<span class="instv {perf_class(dealer_net)}">{fmt_net(dealer_net)}</span></div>'
+                     f'<span class="instv {perf_class(dealer_net)}">{fmt_lot(dealer_net)}</span></div>'
                      f'<div class="instrow total"><span class="instk">三大合計</span>'
-                     f'<span class="instv {net_cls} mono">{fmt_net(total_net)}</span></div>'
+                     f'<span class="instv {net_cls} mono">{fmt_lot(total_net)}</span></div>'
                      f'<div class="inst-date">資料日 {inst_date}</div>')
         # 基本面小標（外資持股 + PER）
         foreign_ratio = d.get('foreign_ratio')

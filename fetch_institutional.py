@@ -71,6 +71,14 @@ def _get_json(url: str) -> dict | None:
 
 
 # ── 抓取單一股票最新一日法人買賣超 ─────────────────────────────
+def fmt_lot(v: float | None) -> str:
+    if v is None:
+        return '—'
+    if v >= 10000:
+        return f'{v/10000:.1f} 萬張'
+    else:
+        return f'{v:.0f} 張'
+
 def fetch_one(symbol: str) -> dict | None:
     """回傳 {foreign_net, trust_net, dealer_net, total_net, date}，無資料回 None。
     單位：張（1 張 = 1,000 股）"""
@@ -97,8 +105,8 @@ def fetch_one(symbol: str) -> dict | None:
         total = 0.0
         for r in day_rows:
             if r.get('name') == name:
-                buy = int(r.get('Buy', 0))
-                sell = int(r.get('Sell', 0))
+                buy = int(r.get('buy', 0))
+                sell = int(r.get('sell', 0))
                 total += (buy - sell) / 1000.0   # 轉換為張
         return total
 
@@ -128,8 +136,8 @@ if __name__ == '__main__':
         if r:
             results[sym] = r
             sign = '買超' if r['total_net'] > 0 else ('賣超' if r['total_net'] < 0 else '平衡')
-            print(f'{sym} {r["date"]}: 外資{r["foreign_net"]:+,} 投信{r["trust_net"]:+,} '
-                  f'自營{r["dealer_net"]:+,} 合计{r["total_net"]:+,} {sign}')
+            print(f'{sym} {r["date"]}: 外資{fmt_lot(r["foreign_net"])} 投信{fmt_lot(r["trust_net"])} '
+                  f'自營{fmt_lot(r["dealer_net"])} 合计{fmt_lot(r["total_net"])} {sign}')
         else:
             print(f'{sym}: 無資料')
     # 寫入 data/institutional.json
