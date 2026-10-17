@@ -112,6 +112,59 @@ def parse_title(title: str) -> tuple | None:
     return None
 
 
+# ---------------------------------------------------------------- Hermes 自動生成 desc + 投資關注重點
+
+HERMES_BIN_CANDIDATES = [
+    'hermes',
+    r'C:\Users\Administrator\AppData\Local\hermes\bin\hermes.cmd',
+    r'C:\Users\Administrator\AppData\Local\hermes\hermes-agent\venv\Scripts\hermes.exe',
+]
+
+
+def _find_hermes() -> str | None:
+    import shutil
+    for cand in HERMES_BIN_CANDIDATES:
+        if shutil.which(cand):
+            return cand
+    return None
+
+
+def generate_stock_content(ticker: str, name: str, industry: str) -> dict:
+    """呼叫 hermes CLI（-z 一次模式）生成 desc + 投資關注重點。
+    失敗回傳空結構，不阻斷主流程。"""
+    default = {'desc': '', 'catalysts': []}
+    hermes = _find_hermes()
+    if not hermes:
+        print('[GEN] 找不到 hermes CLI，跳過自動生成')
+        return default
+    prompt = (
+        f"你是台股研究員。請為股票 {ticker}（{name}，產業：{industry}）撰寫投資分析。\n"
+        "要求：1. desc：一句話公司簡介（30~50 字）。"
+        "2. catalysts：4 條投資關注重點（每條 15~30 字，聚焦該股關鍵驅動因素或風險）。\n"
+        "只輸出單一 JSON 物件，不要其他文字或 markdown："
+        '{"desc": "...", "catalysts": ["...", "...", "...", "..."]}'
+    )
+    try:
+        r = run([hermes, '-z', prompt], timeout=300)
+        out = (r.stdout or '').strip()
+        start, end = out.find('{'), out.rfind('}')
+        if start == -1 or end == -1 or end < start:
+            print(f'[GEN] {ticker} hermes 輸出無 JSON，跳過')
+            return default
+        obj = json.loads(out[start:end + 1])
+        desc = str(obj.get('desc', '')).strip()
+        cats = obj.get('catalysts', [])
+        cats = [str(c).strip() for c in cats if str(c).strip()][:5] if isinstance(cats, list) else []
+        if not desc and not cats:
+            print(f'[GEN] {ticker} hermes 輸出為空，跳過')
+            return default
+        print(f'[GEN] {ticker} 自動生成成功（desc {len(desc)} 字、catalysts {len(cats)} 條）')
+        return {'desc': desc, 'catalysts': cats}
+    except Exception as e:
+        print(f'[GEN] {ticker} 自動生成失敗: {e}')
+        return default
+
+
 def update_tickers(action: str, ticker: str) -> bool:
     """更新 ticker_company.json。回傳 True 表示有變化。"""
     try:
@@ -126,11 +179,15 @@ def update_tickers(action: str, ticker: str) -> bool:
         if ticker in data:
             print(f'[SKIP] {ticker} 已存在於 ticker_company.json')
             return False
-        # 嘗試從 TPEx API 抓取公司名稱（若為上櫃股）
+        # 查表 stock_id.json 取得股票名稱
         name, full_name, industry = _fetch_company_info(ticker)
         entry = {'name': name, 'industry': industry, 'desc': '', 'catalysts': []}
         if full_name and full_name != name:
             entry['full_name'] = full_name
+        # 自動生成 desc + 投資關注重點（hermes CLI 一次模式）
+        gen = generate_stock_content(ticker, name, industry)
+        entry['desc'] = gen.get('desc', '')
+        entry['catalysts'] = gen.get('catalysts', [])
         data[ticker] = entry
         print(f'[ADD] 已新增 {ticker} ({name}) 到 ticker_company.json')
     elif action == 'remove':
