@@ -42,8 +42,16 @@ def fmt_volume(x):
         return '—'
     lots = x / 1000
     if lots >= 10000:
-        return f'{lots / 10000:,.1f} 萬張'
-    return f'{lots:,.0f} 張'
+        return f'{lots / 10000:.1f} 萬張'
+    return f'{lots:.0f} 張'
+
+def fmt_lot(v: float | None) -> str:
+    if v is None:
+        return '—'
+    if v >= 10000:
+        return f'{v/10000:.1f} 萬張'
+    else:
+        return f'{v:.0f} 張'
 
 
 def fmt_amp(v):
@@ -193,7 +201,7 @@ def build_stock_page(d: dict, inst: dict | None = None) -> str:
 
     def inst_val(key: str) -> str:
         v = inst_data.get(key)
-        return fmt_net(v) if v is not None else '—'
+        return fmt_lot(v) if v is not None else '—'
 
     def inst_cls_key(key: str) -> str:
         return perf_class(inst_data.get(key))

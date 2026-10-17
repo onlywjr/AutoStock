@@ -72,7 +72,8 @@ def _get_json(url: str) -> dict | None:
 
 # ── 抓取單一股票最新一日法人買賣超 ─────────────────────────────
 def fetch_one(symbol: str) -> dict | None:
-    """回傳 {foreign_net, trust_net, dealer_net, total_net, date}，無資料回 None。"""
+    """回傳 {foreign_net, trust_net, dealer_net, total_net, date}，無資料回 None。
+    單位：張（1 張 = 1,000 股）"""
     url = (f'https://api.finmindtrade.com/api/v4/data'
            f'?dataset=TaiwanStockInstitutionalInvestorsBuySell'
            f'&data_id={symbol}&start_date=2020-01-01'
@@ -91,11 +92,14 @@ def fetch_one(symbol: str) -> dict | None:
     latest_date = max(by_date.keys())
     day_rows = by_date[latest_date]
 
-    def net_for(name: str) -> int:
-        total = 0
+    def net_for(name: str) -> float:
+        """返回淨額（買賣差額），單位：張（1 張 = 1,000 股）"""
+        total = 0.0
         for r in day_rows:
             if r.get('name') == name:
-                total += int(r.get('buy', 0)) - int(r.get('sell', 0))
+                buy = int(r.get('Buy', 0))
+                sell = int(r.get('Sell', 0))
+                total += (buy - sell) / 1000.0   # 轉換為張
         return total
 
     foreign_net = net_for('Foreign_Investor')
