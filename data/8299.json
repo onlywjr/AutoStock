@@ -27,5 +27,11 @@
     "PCIe Gen 5 Retimer 明年 Q1 貢獻放大，高速傳輸版圖升級",
     "工控／汽車級儲存模組毛利優於消費性市場，占比提升是關鍵",
     "記憶體市場景氣循環與原廠擴產進度為主要變數"
-  ]
+  ],
+  "per": 8.66,
+  "pbr": 4.1,
+  "div_yield": 1.23,
+  "foreign_ratio": 44.04,
+  "foreign_hold": 97375306,
+  "foreign_limit_ratio": 100.0
 }

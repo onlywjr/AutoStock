@@ -22,6 +22,26 @@ import sys, json, ssl, os, re, time, datetime, urllib.request
 
 REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 
+# ── FinMind JWT（從 .env 讀取，不洩漏至前端）────────────────────
+_JWT = ''
+
+
+def _load_finmind_token() -> str:
+    global _JWT
+    if _JWT:
+        return _JWT
+    env_file = os.path.join(REPO_ROOT, '.env')
+    try:
+        with open(env_file, encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('FINMIND_TOKEN='):
+                    _JWT = line.split('=', 1)[1].strip().strip('"').strip("'")
+                    break
+    except Exception:
+        pass
+    return _JWT
+
 # 上櫃股票走 TPEx；1434/2327/2330/6213 為上市（走 TWSE）
 TPEX_TICKERS = {'8299'}
 
@@ -44,21 +64,23 @@ def _int(v):
     return int(_num(v))
 
 
-def _get_json(url: str):
-    """GET JSON。SSL 驗證在本機不穩定：先用預設 context，失敗再換 CERT_NONE 重試。"""
-    req = urllib.request.Request(
-        url,
-        headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'},
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            return json.load(resp)
-    except Exception:
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        with urllib.request.urlopen(req, context=ctx, timeout=30) as resp:
-            return json.load(resp)
+def _get_json(url: str) -> dict | None:
+    """GET JSON。SSL 驗證在本機不穩定：先用預設 context，失敗再換 CERT_NONE 重試。
+    若仍失敗（例如需要 Authorization header），則加上 JWT 再試一次。"""
+    ctx = ssl.create_default_context()
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+    for try_auth in (False, True):
+        if try_auth and _JWT:
+            headers['Authorization'] = f'Bearer {_JWT}'
+        for verify in (True, False):
+            try:
+                req_ctx = ssl.create_default_context() if verify else ssl._create_unverified_context()
+                req = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(req, context=req_ctx, timeout=30) as resp:
+                    return json.load(resp)
+            except Exception:
+                continue
+    return None
 
 
 def _norm_date(s) -> str:
@@ -378,6 +400,31 @@ def fetch_data(symbol: str) -> dict:
     quote['industry'] = info.get('industry', '')
     quote['desc'] = info.get('desc', '')
     quote['catalysts'] = info.get('catalysts', [])
+
+    # FinMind：PER / PBR / 殖利率（Free）
+    _load_finmind_token()
+    if _JWT:
+        try:
+            per_data = _get_json(f'https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockPER&data_id={symbol}&start_date=2020-01-01&sort=data_date&limit=1')
+            rows = per_data.get('data') if isinstance(per_data, dict) else None
+            if rows:
+                r = rows[-1]
+                quote['per'] = r.get('PER')
+                quote['pbr'] = r.get('PBR')
+                quote['div_yield'] = r.get('dividend_yield')
+        except Exception:
+            pass
+        try:
+            sh_data = _get_json(f'https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockShareholding&data_id={symbol}&start_date=2026-01-01&sort=data_date&limit=1')
+            rows = sh_data.get('data') if isinstance(sh_data, dict) else None
+            if rows:
+                r = rows[-1]
+                quote['foreign_ratio'] = r.get('ForeignInvestmentSharesRatio')  # 外資持股比例 %
+                quote['foreign_hold'] = r.get('ForeignInvestmentShares')       # 外資持股股數
+                quote['foreign_limit_ratio'] = r.get('ForeignInvestmentUpperLimitRatio')
+        except Exception:
+            pass
+
     return quote
 
 

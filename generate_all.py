@@ -253,6 +253,11 @@ def build_stock_page(d: dict, inst: dict | None = None) -> str:
         '{{INST_TOTAL}}': inst_val('total_net'),
         '{{INST_TOTAL_CLASS}}': inst_cls_key('total_net'),
         '{{INST_TOTAL_LABEL}}': inst_label(total_net),
+        '{{PER_VAL}}': f"{d.get('per', '—'):.2f}" if d.get('per') is not None else '—',
+        '{{PBR_VAL}}': f"{d.get('pbr', '—'):.2f}" if d.get('pbr') is not None else '—',
+        '{{DIV_YIELD_VAL}}': f"{d.get('div_yield', 0):.2f}%" if d.get('div_yield') is not None else '—',
+        '{{FOREIGN_RATIO_VAL}}': f"{d.get('foreign_ratio', 0):.1f}%" if d.get('foreign_ratio') is not None else '—',
+        '{{FOREIGN_LIMIT_VAL}}': f"{d.get('foreign_limit_ratio', 100):.0f}" if d.get('foreign_limit_ratio') is not None else '100',
         '{{CATALYST_ITEMS}}': catalyst_items(d.get('catalysts', [])),
     }
     for k, v in replacements.items():
@@ -316,11 +321,24 @@ def build_custom_cards(records: dict, inst: dict) -> str:
                      f'<div class="instrow total"><span class="instk">三大合計</span>'
                      f'<span class="instv {net_cls} mono">{fmt_net(total_net)}</span></div>'
                      f'<div class="inst-date">資料日 {inst_date}</div>')
+        # 基本面小標（外資持股 + PER）
+        foreign_ratio = d.get('foreign_ratio')
+        per_val = d.get('per')
+        pbr_val = d.get('pbr')
+        basic_cells = []
+        if foreign_ratio is not None:
+            basic_cells.append(f'<span class="bcell">外資 {foreign_ratio:.1f}%</span>')
+        if per_val is not None:
+            basic_cells.append(f'<span class="bcell">PER {per_val:.1f}</span>')
+        if pbr_val is not None:
+            basic_cells.append(f'<span class="bcell">PBR {pbr_val:.1f}</span>')
+        basic_html = '<div class="basiccells">' + ''.join(basic_cells) + '</div>' if basic_cells else ''
         cards.append(f'''<a class="card" href="{sym}.html">
   <div class="row1">
     <span class="ticker mono">{sym}.TW</span>
     <span class="industry">{html.escape(d.get("industry", "—"))}</span>
   </div>
+  {basic_html}
   <h3>{name_attr}<small>{full}</small></h3>
   <div class="meta">資料日期 {html.escape(d.get("date", ""))}<span>成交量 {fmt_volume(d.get("volume", 0))}</span>{ytd_cell}</div>
   <div class="pricerow">
@@ -592,6 +610,8 @@ def build_index(records: dict, hot_data: dict, inst_data: dict | None = None) ->
   .instv {{ font-variant-numeric: tabular-nums; font-weight: 600; }}
   .inst-date {{ font-size: 11px; color: var(--muted); opacity: 0.7; margin-top: 4px; text-align: right; }}
   .card {{ min-height: 200px; }}
+  .basiccells {{ display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }}
+  .bcell {{ font-size: 11px; background: var(--chip); color: var(--muted); padding: 2px 8px; border-radius: 4px; }}
   footer {{
     margin-top: 30px;
     text-align: center;
