@@ -183,11 +183,32 @@ def catalyst_items(catalysts):
     return '\n        '.join(out)
 
 
-def build_stock_page(d: dict) -> str:
+def build_stock_page(d: dict, inst: dict | None = None) -> str:
     tpl = load_template('dashboard_template.html')
     cls, sign = change_info(d.get('change', 0), d.get('change_pct', 0))
     stats = d.get('stats') or {}
     chart_title, chart_body_html, chart_script = chart_section(d)
+    inst_d = inst or {}
+    inst_data = inst_d.get(d['symbol'], {})
+
+    def inst_val(key: str) -> str:
+        v = inst_data.get(key)
+        return fmt_net(v) if v is not None else '—'
+
+    def inst_cls_key(key: str) -> str:
+        return perf_class(inst_data.get(key))
+
+    def inst_label(v: int | None) -> str:
+        if v is None or v == 0:
+            return '—'
+        return '買超' if v > 0 else '賣超'
+
+    # 法人欄位
+    foreign_net = inst_data.get('foreign_net')
+    trust_net   = inst_data.get('trust_net')
+    dealer_net  = inst_data.get('dealer_net')
+    total_net   = inst_data.get('total_net')
+    inst_date   = html.escape(str(inst_data.get('date', '—')))
 
     out = tpl
     replacements = {
@@ -219,6 +240,19 @@ def build_stock_page(d: dict) -> str:
         '{{VOL30}}': f"{stats['vol30_ann']:,.1f}%" if stats.get('vol30_ann') is not None else '—',
         '{{AVG_VOL20}}': fmt_volume(stats.get('avg_vol20')) if stats.get('avg_vol20') else '—',
         '{{VOL_RATIO}}': f"{stats['vol_ratio']:,.2f}x" if stats.get('vol_ratio') is not None else '—',
+        '{{INST_DATE}}': inst_date,
+        '{{INST_FOREIGN}}': inst_val('foreign_net'),
+        '{{INST_FOREIGN_CLASS}}': inst_cls_key('foreign_net'),
+        '{{INST_FOREIGN_LABEL}}': inst_label(foreign_net),
+        '{{INST_TRUST}}': inst_val('trust_net'),
+        '{{INST_TRUST_CLASS}}': inst_cls_key('trust_net'),
+        '{{INST_TRUST_LABEL}}': inst_label(trust_net),
+        '{{INST_DEALER}}': inst_val('dealer_net'),
+        '{{INST_DEALER_CLASS}}': inst_cls_key('dealer_net'),
+        '{{INST_DEALER_LABEL}}': inst_label(dealer_net),
+        '{{INST_TOTAL}}': inst_val('total_net'),
+        '{{INST_TOTAL_CLASS}}': inst_cls_key('total_net'),
+        '{{INST_TOTAL_LABEL}}': inst_label(total_net),
         '{{CATALYST_ITEMS}}': catalyst_items(d.get('catalysts', [])),
     }
     for k, v in replacements.items():
@@ -226,9 +260,29 @@ def build_stock_page(d: dict) -> str:
     return out
 
 
+# ---------------------------------------------------------------- 法人資料載入
+
+def load_institutional() -> dict:
+    """讀取 data/institutional.json（key=symbol, value={foreign_net,trust_net,dealer_net,total_net,date}）。"""
+    p = os.path.join(REPO_ROOT, 'data', 'institutional.json')
+    try:
+        with open(p, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def fmt_net(v: int | None) -> str:
+    """外資/投信/自營淨額：+1,234,567 / −987,654 / —"""
+    if v is None:
+        return '—'
+    sign = '+' if v > 0 else ''
+    return f'{sign}{v:,}'
+
+
 # ---------------------------------------------------------------- 首頁自訂股卡片
 
-def build_custom_cards(records: dict) -> str:
+def build_custom_cards(records: dict, inst: dict) -> str:
     cards = []
     for sym in TICKERS:
         d = records.get(sym)
@@ -246,6 +300,22 @@ def build_custom_cards(records: dict) -> str:
         name_attr = html.escape(d.get('company', sym))
         ytd = (d.get('stats') or {}).get('ytd')
         ytd_cell = f'<span class="{perf_class(ytd)}">YTD {fmt_signed(ytd)}</span>' if ytd is not None else '<span>YTD —</span>'
+        inst_d = inst.get(sym, {})
+        foreign_net = inst_d.get('foreign_net')
+        trust_net   = inst_d.get('trust_net')
+        dealer_net  = inst_d.get('dealer_net')
+        total_net   = inst_d.get('total_net')
+        inst_date   = html.escape(str(inst_d.get('date', '')))
+        net_cls = perf_class(total_net)
+        inst_html = (f'<div class="instrow"><span class="instk">外資</span>'
+                     f'<span class="instv {perf_class(foreign_net)}">{fmt_net(foreign_net)}</span></div>'
+                     f'<div class="instrow"><span class="instk">投信</span>'
+                     f'<span class="instv {perf_class(trust_net)}">{fmt_net(trust_net)}</span></div>'
+                     f'<div class="instrow"><span class="instk">自營</span>'
+                     f'<span class="instv {perf_class(dealer_net)}">{fmt_net(dealer_net)}</span></div>'
+                     f'<div class="instrow total"><span class="instk">三大合計</span>'
+                     f'<span class="instv {net_cls} mono">{fmt_net(total_net)}</span></div>'
+                     f'<div class="inst-date">資料日 {inst_date}</div>')
         cards.append(f'''<a class="card" href="{sym}.html">
   <div class="row1">
     <span class="ticker mono">{sym}.TW</span>
@@ -257,6 +327,7 @@ def build_custom_cards(records: dict) -> str:
     <span class="price mono {cls}">{fmt_price(d.get("close", 0))}</span>
     <span class="chg mono {cls}">{sign} {fmt_price(abs(d.get("change", 0)))} ({abs(d.get("change_pct", 0)):,.2f}%)</span>
   </div>
+  {inst_html}
 </a>''')
     return '\n'.join(cards)
 
@@ -323,8 +394,10 @@ def build_hot_section(hot_data: dict) -> str:
 
 # ---------------------------------------------------------------- 生成首頁（自訂股 + 熱門股）
 
-def build_index(records: dict, hot_data: dict) -> str:
-    custom_html = build_custom_cards(records)
+def build_index(records: dict, hot_data: dict, inst_data: dict | None = None) -> str:
+    if inst_data is None:
+        inst_data = {}
+    custom_html = build_custom_cards(records, inst_data)
     hot_html = build_hot_section(hot_data)
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
     twse_date = html.escape(str(hot_data.get('twse_date', '')))
@@ -386,7 +459,7 @@ def build_index(records: dict, hot_data: dict) -> str:
   .sec-title .stamp {{ font-size: 12px; padding: 4px 10px; }}
   .cards {{
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
   }}
   .card {{
@@ -508,6 +581,17 @@ def build_index(records: dict, hot_data: dict) -> str:
     opacity: 0.8;
     margin-left: 4px;
   }}
+  /* 法人買賣超 */
+  .instrow {{
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0; border-top: 1px solid var(--border);
+    font-size: 12px;
+  }}
+  .instrow.total {{ border-top: 2px solid var(--border); margin-top: 4px; font-weight: 700; }}
+  .instk {{ color: var(--muted); }}
+  .instv {{ font-variant-numeric: tabular-nums; font-weight: 600; }}
+  .inst-date {{ font-size: 11px; color: var(--muted); opacity: 0.7; margin-top: 4px; text-align: right; }}
+  .card {{ min-height: 200px; }}
   footer {{
     margin-top: 30px;
     text-align: center;
@@ -576,8 +660,9 @@ def main():
                 print(f'[FALLBACK] {sym} 使用 data/{sym}.json 舊資料重繪')
 
     # 產生各股頁面
+    inst_data = load_institutional()
     for sym, d in records.items():
-        page = build_stock_page(d)
+        page = build_stock_page(d, inst_data)
         with open(os.path.join(REPO_ROOT, f'{sym}.html'), 'w', encoding='utf-8') as f:
             f.write(page)
         print(f'[PAGE] {sym}.html')
@@ -587,9 +672,13 @@ def main():
     hot_data = fetch_market.build_hot(out_path=os.path.join(DATA_DIR, 'hot_stocks.json'))
     print(f'[HOT]  TWSE {hot_data["counts"].get("twse",0)} + TPEx {hot_data["counts"].get("tpex",0)} → {hot_data["counts"].get("qualifying",0)} qualifying')
 
+    # 讀取法人買賣超資料
+    inst_data = load_institutional()
+    print(f'[INST] 已載入 {len(inst_data)} 檔法人資料')
+
     # 產生 index（含自訂股 + 熱門股）
     with open(os.path.join(REPO_ROOT, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(build_index(records, hot_data))
+        f.write(build_index(records, hot_data, inst_data))
     print('[PAGE] index.html')
 
     if failed:

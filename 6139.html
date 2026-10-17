@@ -210,6 +210,34 @@
 
   <div class="grid" style="grid-template-columns: 1fr;">
     <div class="card">
+      <h2><span class="bar"></span>三大法人買賣超（2026-10-16）</h2>
+      <div class="metrics" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="metric">
+          <div class="k">外資</div>
+          <div class="v mono down">-1,136,959</div>
+          <div class="text-xs text-slate-400 mt-1">賣超</div>
+        </div>
+        <div class="metric">
+          <div class="k">投信</div>
+          <div class="v mono down">-29,000</div>
+          <div class="text-xs text-slate-400 mt-1">賣超</div>
+        </div>
+        <div class="metric">
+          <div class="k">自營商</div>
+          <div class="v mono down">-47,015</div>
+          <div class="text-xs text-slate-400 mt-1">賣超</div>
+        </div>
+        <div class="metric" style="border-color: var(--accent);">
+          <div class="k">三大合計</div>
+          <div class="v mono down">-1,212,974</div>
+          <div class="text-xs text-slate-400 mt-1">賣超</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card">
       <h2><span class="bar"></span>投資關注重點</h2>
       <ul class="catalyst">
         <li><b>1</b>國內半導體 Fab 擴產（台積電／聯華電子等）直接帶動無塵室工程訂單</li>
@@ -221,8 +249,9 @@
   </div>
 
   <footer>
-    亞翔工程 (6139) 專屬儀表板 ｜ 本頁由 Hermes AI Agent 自動生成並推送至 GitHub<br>
-    數據來源：TWSE / TPEx 公開 API（日K 歷史、收盤行情、52 週區間與均線皆由日K 衍生計算）
+    數據來源：TWSE / TPEx 公開 API（日K 歷史、收盤行情、52 週區間與均線皆由日K 衍生計算）<br>
+    三大法人買賣超數據：FinMind（JWT 存放於 .env，不洩漏至前端）<br>
+    本頁由 Hermes AI Agent 自動生成，僅供資訊參考，不構成投資建議
   </footer>
 
 </div>
