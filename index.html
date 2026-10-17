@@ -195,6 +195,39 @@
     font-size: 12px;
     line-height: 1.8;
   }
+  .btn-remove {
+    margin-left: auto;
+    background: var(--chip);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity .15s, background .15s;
+  }
+  .btn-remove:hover {
+    opacity: 1;
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+  }
+  .btn-add {
+    background: var(--accent);
+    color: #06121f;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: opacity .15s;
+  }
+  .btn-add:hover {
+    opacity: 0.8;
+  }
   @media (max-width: 620px) {
     .cards { grid-template-columns: repeat(2, 1fr); }
   }
@@ -208,16 +241,17 @@
       <h1>Auto<span>Stock</span> 儀表板</h1>
       <p>台股每日收盤自動更新：即時收盤價、漲跌幅、近 5 日走勢與投資關注重點，由 Hermes AI Agent 每日排程自動生成並推送。</p>
     </div>
-    <span class="stamp">生成時間：2026-10-17 16:01</span>
+    <span class="stamp">生成時間：2026-10-17 22:11</span>
   </header>
 
   <section class="section">
-    <h2 class="sec-title">🔶 我的自訂股</h2>
+    <h2 class="sec-title">🔶 我的自訂股 <button class="btn-add" id="btn-add">＋ 新增股票</button></h2>
     <div class="cards">
       <a class="card" href="1434.html">
   <div class="row1">
     <span class="ticker mono">1434.TW</span>
     <span class="industry">紡織業</span>
+    <button class="btn-remove" data-symbol="1434" onclick="event.preventDefault(); event.stopPropagation();">✕ 移除</button>
   </div>
   <div class="basiccells"><span class="bcell">外資 9.2%</span><span class="bcell">PER 22.2</span><span class="bcell">PBR 0.7</span></div>
   <h3>福懋興業<small>福懋興業股份有限公司</small></h3>
@@ -232,6 +266,7 @@
   <div class="row1">
     <span class="ticker mono">2327.TW</span>
     <span class="industry">被動元件</span>
+    <button class="btn-remove" data-symbol="2327" onclick="event.preventDefault(); event.stopPropagation();">✕ 移除</button>
   </div>
   <div class="basiccells"><span class="bcell">外資 42.7%</span><span class="bcell">PER 38.2</span><span class="bcell">PBR 6.6</span></div>
   <h3>國巨<small>國巨股份有限公司</small></h3>
@@ -246,6 +281,7 @@
   <div class="row1">
     <span class="ticker mono">2330.TW</span>
     <span class="industry">半導體</span>
+    <button class="btn-remove" data-symbol="2330" onclick="event.preventDefault(); event.stopPropagation();">✕ 移除</button>
   </div>
   <div class="basiccells"><span class="bcell">外資 68.7%</span><span class="bcell">PER 28.1</span><span class="bcell">PBR 9.8</span></div>
   <h3>台積電<small>台灣積體電路製造股份有限公司</small></h3>
@@ -260,6 +296,7 @@
   <div class="row1">
     <span class="ticker mono">6139.TW</span>
     <span class="industry">工業工程</span>
+    <button class="btn-remove" data-symbol="6139" onclick="event.preventDefault(); event.stopPropagation();">✕ 移除</button>
   </div>
   <div class="basiccells"><span class="bcell">外資 19.3%</span><span class="bcell">PER 13.6</span><span class="bcell">PBR 7.7</span></div>
   <h3>亞翔工程<small>亞翔工程股份有限公司</small></h3>
@@ -274,6 +311,7 @@
   <div class="row1">
     <span class="ticker mono">6213.TW</span>
     <span class="industry">電子零組件</span>
+    <button class="btn-remove" data-symbol="6213" onclick="event.preventDefault(); event.stopPropagation();">✕ 移除</button>
   </div>
   <div class="basiccells"><span class="bcell">外資 21.7%</span><span class="bcell">PER 120.0</span><span class="bcell">PBR 12.5</span></div>
   <h3>聯茂<small>聯茂電子股份有限公司</small></h3>
@@ -288,6 +326,7 @@
   <div class="row1">
     <span class="ticker mono">8299.TW</span>
     <span class="industry">半導體</span>
+    <button class="btn-remove" data-symbol="8299" onclick="event.preventDefault(); event.stopPropagation();">✕ 移除</button>
   </div>
   <div class="basiccells"><span class="bcell">外資 44.0%</span><span class="bcell">PER 8.7</span><span class="bcell">PBR 4.1</span></div>
   <h3>群聯<small>群聯電子股份有限公司</small></h3>
@@ -300,6 +339,19 @@
 </a>
     </div>
   </section>
+
+  <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; max-width:400px; width:90%;">
+      <h3 style="margin:0 0 12px; font-size:18px;">新增自訂股票</h3>
+      <p style="color:var(--muted); font-size:14px; margin:0 0 16px;">輸入 4 位代號（例如 1101），系統將建立 GitHub Issue，由自動化工具處理後即會顯示在此。</p>
+      <input type="text" id="ticker-input" placeholder="例如：1101" style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:16px; box-sizing:border-box;">
+      <div style="margin-top:16px; display:flex; gap:8px;">
+        <button id="btn-confirm-add" style="flex:1; padding:10px; background:var(--accent); color:#06121f; border:none; border-radius:8px; font-weight:600; cursor:pointer;">確認新增</button>
+        <button id="btn-cancel" style="flex:1; padding:10px; background:var(--chip); color:var(--text); border:1px solid var(--border); border-radius:8px; cursor:pointer;">取消</button>
+      </div>
+      <div id="modal-msg" style="margin-top:12px; font-size:14px; text-align:center;"></div>
+    </div>
+  </div>
 
   <section class="section">
     <h2 class="sec-title">🔥 今日熱門股 <span class="stamp">上市 2026-10-16 ・ 上櫃 2026-10-16 ・ 成交額 ≥1 億（共 519 檔符合門檻）</span></h2>
@@ -364,5 +416,89 @@
   </footer>
 
 </div>
+<script>
+(function() {
+  const API_BASE = '/api/stock-update';
+  const overlay = document.getElementById('modal-overlay');
+  const input = document.getElementById('ticker-input');
+  const msg = document.getElementById('modal-msg');
+
+  function showModal() {
+    overlay.style.display = 'flex';
+    input.value = '';
+    msg.textContent = '';
+    input.focus();
+  }
+
+  function hideModal() {
+    overlay.style.display = 'none';
+  }
+
+  function setStatus(text, isError) {
+    msg.textContent = text;
+    msg.style.color = isError ? 'var(--down)' : 'var(--accent)';
+  }
+
+  function callApi(action, ticker) {
+    return fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ticker })
+    });
+  }
+
+  document.getElementById('btn-add').addEventListener('click', showModal);
+  document.getElementById('btn-cancel').addEventListener('click', hideModal);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) hideModal();
+  });
+
+  document.getElementById('btn-confirm-add').addEventListener('click', async () => {
+    const ticker = input.value.trim();
+    if (!/^\d{4}$/.test(ticker)) {
+      setStatus('請輸入 4 位數字代號', true);
+      return;
+    }
+    setStatus('提交中…');
+    try {
+      const res = await callApi('add', ticker);
+      if (res.ok) {
+        setStatus('已提交！自動化工具處理後將顯示於此。');
+        setTimeout(hideModal, 2000);
+      } else {
+        setStatus('提交失敗，請稍後再試。', true);
+      }
+    } catch (e) {
+      setStatus('網路錯誤，請稍後再試。', true);
+    }
+  });
+
+  document.querySelectorAll('.btn-remove').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const ticker = btn.dataset.symbol;
+      if (!confirm(`確定要移除 ${ticker} 嗎？\n將建立 GitHub Issue 通知自動化工具。`)) return;
+      btn.textContent = '處理中…';
+      btn.disabled = true;
+      try {
+        const res = await callApi('remove', ticker);
+        if (res.ok) {
+          btn.textContent = '已提交';
+          btn.style.background = 'var(--down)';
+          btn.style.color = '#fff';
+          btn.style.borderColor = 'var(--down)';
+        } else {
+          alert('提交失敗，請稍後再試。');
+          btn.textContent = '✕ 移除';
+          btn.disabled = false;
+        }
+      } catch (e) {
+        alert('網路錯誤，請稍後再試。');
+        btn.textContent = '✕ 移除';
+        btn.disabled = false;
+      }
+    });
+  });
+})();
+</script>
 </body>
 </html>
