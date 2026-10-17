@@ -137,7 +137,7 @@ if __name__ == '__main__':
             results[sym] = r
             sign = '買超' if r['total_net'] > 0 else ('賣超' if r['total_net'] < 0 else '平衡')
             print(f'{sym} {r["date"]}: 外資{fmt_lot(r["foreign_net"])} 投信{fmt_lot(r["trust_net"])} '
-                  f'自營{fmt_lot(r["dealer_net"])} 合计{fmt_lot(r["total_net"])} {sign}')
+                  f'自營{fmt_lot(r["dealer_net"])} 合計{fmt_lot(r["total_net"])} {sign}')
         else:
             print(f'{sym}: 無資料')
     # 寫入 data/institutional.json

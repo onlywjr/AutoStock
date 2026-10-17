@@ -79,8 +79,13 @@ def release_lock(f):
 
 
 def run(cmd, timeout=120, env=None):
+    """subprocess：子程序強制 UTF-8（PYTHONUTF8），避免 CP950 編碼崩潰。"""
+    base_env = {**os.environ, 'PYTHONUTF8': '1'}
+    if env:
+        base_env.update(env)
     return subprocess.run(cmd, capture_output=True, text=True,
-                           cwd=REPO_ROOT, timeout=timeout, env=env)
+                           cwd=REPO_ROOT, timeout=timeout, env=base_env,
+                           encoding='utf-8', errors='replace')
 
 
 def list_issues() -> list:
@@ -123,13 +128,10 @@ def update_tickers(action: str, ticker: str) -> bool:
             return False
         # 嘗試從 TPEx API 抓取公司名稱（若為上櫃股）
         name, full_name, industry = _fetch_company_info(ticker)
-        data[ticker] = {
-            'name': name,
-            'full_name': full_name,
-            'industry': industry,
-            'desc': '',
-            'catalysts': [],
-        }
+        entry = {'name': name, 'industry': industry, 'desc': '', 'catalysts': []}
+        if full_name and full_name != name:
+            entry['full_name'] = full_name
+        data[ticker] = entry
         print(f'[ADD] 已新增 {ticker} ({name}) 到 ticker_company.json')
     elif action == 'remove':
         if ticker not in data:
@@ -146,25 +148,23 @@ def update_tickers(action: str, ticker: str) -> bool:
     return True
 
 
+STOCK_ID_FILE = os.path.join(REPO_ROOT, 'stock_id.json')
+
+
 def _fetch_company_info(ticker: str) -> tuple:
-    """嘗試從 TPEx API 抓取公司名稱與產業（若為上櫃股）。
-    回傳 (name, full_name, industry)。"""
-    import urllib.request, ssl
-    ctx = ssl._create_unverified_context()
-    # 先試 TPEx API
+    """從 stock_id.json（上市+上櫃代號對照表）查詢股票名稱。
+    回傳 (name, full_name, industry)；找不到回傳 Unknown。"""
     try:
-        url = (f'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes'
-               f'?l=zh-tw&d=2026-10-01&se=EW')
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:
-            rows = json.loads(resp.read().decode('utf-8'))
-        for item in rows:
-            if str(item.get('SecuritiesCompanyCode', '')).zfill(4) == ticker:
-                name = item.get('CompanyName', '')
-                return name, name, '上櫃'
+        with open(STOCK_ID_FILE, encoding='utf-8') as f:
+            entries = json.load(f)
+        for item in entries:
+            if str(item.get('code', '')).zfill(4) == ticker:
+                name = str(item.get('name', '')).strip()
+                if name:
+                    # 產業本對照表沒提供，先標「—」；full_name 留空讓頁面以簡稱顯示
+                    return name, '', '—'
     except Exception:
         pass
-    # 若不在 TPEx，則回傳 Unknown
     return 'Unknown', 'Unknown', 'Unknown'
 
 
@@ -249,7 +249,7 @@ def main():
 
     # 有工作要做 → 將後續處理明細寫入 log
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
-    logf = open(LOG_FILE, 'a', encoding='utf-8')
+    logf = open(LOG_FILE, 'a', encoding='cp950', errors='replace')
     real_stdout = sys.stdout
     sys.stdout = _Tee(real_stdout, logf)
 

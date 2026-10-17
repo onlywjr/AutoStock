@@ -40,5 +40,12 @@
     "trust_net": 68.502,
     "dealer_net": 105.94,
     "total_net": 752.6599999999999
+  },
+  "1708": {
+    "date": "2026-10-16",
+    "foreign_net": 58.423,
+    "trust_net": -14.0,
+    "dealer_net": 12.584,
+    "total_net": 57.007000000000005
   }
 }

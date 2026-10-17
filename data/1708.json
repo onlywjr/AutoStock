@@ -1,6 +1,6 @@
 {
   "symbol": "1708",
-  "company": "Unknown",
+  "company": "東鹼",
   "date": "2026-10-16",
   "open": 52.6,
   "high": 53.6,
@@ -1400,9 +1400,9 @@
       "volume": 2035756
     }
   ],
-  "full_name": "Unknown",
-  "industry": "Unknown",
-  "desc": "",
+  "full_name": "東南實業股份有限公司",
+  "industry": "化學工業",
+  "desc": "鹼液（氫氧化鈉）、純鹼與重過氧化氫等工業用化學品大廠（SESODA）。",
   "catalysts": [],
   "per": 12.81,
   "pbr": 1.73,
