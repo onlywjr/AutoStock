@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unknown (1101) 股票儀表板</title>
+<style>
+  :root {
+    --bg: #0b1120;
+    --card: #111a2e;
+    --card2: #16213a;
+    --border: #22304f;
+    --text: #e6edf7;
+    --muted: #8b9bb4;
+    --up: #ef4444;
+    --down: #22c55e;
+    --flat: #f59e0b;
+    --accent: #38bdf8;
+    --chip: #1d2a47;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(1200px 500px at 80% -10%, #16233f 0%, var(--bg) 55%) fixed;
+    color: var(--text);
+    font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 28px 20px 40px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  .mono { font-variant-numeric: tabular-nums; font-family: "JetBrains Mono", "Consolas", monospace; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px; gap: 12px; flex-wrap: wrap;
+  }
+  .topbar a { color: var(--accent); text-decoration: none; font-size: 14px; }
+  .topbar a:hover { text-decoration: underline; }
+  .stamp { color: var(--muted); font-size: 13px; }
+
+  .hero {
+    background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px 26px;
+    display: flex; justify-content: space-between; align-items: stretch;
+    gap: 24px; flex-wrap: wrap;
+  }
+  .hero .id { display: flex; flex-direction: column; gap: 8px; }
+  .row1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ticker {
+    background: var(--accent); color: #06121f;
+    font-weight: 700; font-size: 13px; letter-spacing: .5px;
+    padding: 3px 12px; border-radius: 999px;
+  }
+  .industry {
+    background: var(--chip); color: var(--text);
+    font-size: 13px; padding: 3px 12px; border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+  .hero h1 { font-size: 30px; font-weight: 700; }
+  .hero h1 small { color: var(--muted); font-size: 16px; font-weight: 400; margin-left: 8px; }
+  .desc { color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 560px; }
+
+  .pricebox {
+    display: flex; flex-direction: column; justify-content: center;
+    background: rgba(5, 10, 22, .45);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 22px; min-width: 220px;
+  }
+  .pricebox .lbl { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+  .pricebox .val { font-size: 38px; font-weight: 700; line-height: 1.1; }
+  .pricebox .chg { font-size: 17px; font-weight: 600; margin-top: 6px; }
+  .up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--flat); }
+  .pricebox .val.up { color: var(--up); } .pricebox .val.down { color: var(--down); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+  }
+  .card h2 {
+    font-size: 15px; color: var(--muted); font-weight: 600;
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 .bar { width: 4px; height: 16px; border-radius: 2px; background: var(--accent); display: inline-block; }
+
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .metric {
+    background: rgba(5, 10, 22, .4);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .metric .k { color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+  .metric .v { font-size: 17px; font-weight: 700; }
+  .metric .v.up { color: var(--up); } .metric .v.down { color: var(--down); }
+
+  .chartbox { position: relative; height: 260px; }
+  .chart-note { color: var(--muted); font-size: 13px; text-align: center; padding: 60px 0; }
+
+  /* 52 週區間條 */
+  .w52bar { position: relative; height: 12px; background: var(--chip); border-radius: 6px; margin: 26px 0 10px; }
+  .w52bar .fill { position: absolute; inset: 0 auto 0 0; width: var(--pos); background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444); opacity: .55; border-radius: 6px; }
+  .w52bar .marker { position: absolute; top: -6px; left: var(--pos); width: 3px; height: 24px; background: #fff; border-radius: 2px; box-shadow: 0 0 6px rgba(0,0,0,.8); }
+  .w52labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+  .w52labels b.up { color: var(--up); } .w52labels b.down { color: var(--down); }
+
+  /* 階段表現 */
+  .perf { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  @media (max-width: 700px) { .perf { grid-template-columns: repeat(3, 1fr); } }
+  .perf .cell { background: rgba(5, 10, 22, .4); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+  .perf .k { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .perf .v { font-size: 18px; font-weight: 700; }
+
+  .catalyst { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .catalyst li {
+    background: rgba(5, 10, 22, .4);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px; line-height: 1.65;
+  }
+  .catalyst li b { color: var(--accent); font-weight: 700; margin-right: 6px; }
+
+  footer {
+    margin-top: 26px; text-align: center;
+    color: #5b6c88; font-size: 12px; line-height: 1.8;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <a href="index.html">← 返回儀表板首頁</a>
+    <span class="stamp">資料日期：2026-10-16</span>
+  </div>
+
+  <div class="hero">
+    <div class="id">
+      <div class="row1">
+        <span class="ticker mono">1101.TW</span>
+        <span class="industry">Unknown</span>
+      </div>
+      <h1>Unknown<small class="mono">Unknown</small></h1>
+      <p class="desc"></p>
+    </div>
+    <div class="pricebox">
+      <div class="lbl">收盤價 (NTD)</div>
+      <div class="val mono up">27.30</div>
+      <div class="chg mono up">▲ 0.50 (1.87%)</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="bar"></span>近 60 日收盤與 MA20</h2>
+      <div class="chartbox"><canvas id="priceChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>盤中重點</h2>
+      <div class="metrics">
+        <div class="metric"><div class="k">開盤</div><div class="v mono">27.10</div></div>
+        <div class="metric"><div class="k">最高</div><div class="v mono up">27.70</div></div>
+        <div class="metric"><div class="k">最低</div><div class="v mono down">26.95</div></div>
+        <div class="metric"><div class="k">前收</div><div class="v mono">26.80</div></div>
+        <div class="metric"><div class="k">成交量</div><div class="v mono">5.7 萬張</div></div>
+        <div class="metric"><div class="k">成交額</div><div class="v mono">15.7 億</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="bar"></span>52 週區間</h2>
+      <div class="w52bar" style="--pos:100.0%"><div class="fill" style="width:100.0%"></div><div class="marker" style="left:100.0%"></div></div><div class="w52labels"><span>52 週低 <b class="down">20.40</b></span><span><b class="up">+26.98%</b>（52 週）</span><span>52 週高 <b class="up">27.30</b></span></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>階段表現</h2>
+      <div class="perf">
+        <div class="cell"><div class="k">52 週</div><div class="v mono up">+26.98%</div></div>
+<div class="cell"><div class="k">6 個月</div><div class="v mono up">+10.98%</div></div>
+<div class="cell"><div class="k">3 個月</div><div class="v mono up">+13.99%</div></div>
+<div class="cell"><div class="k">1 個月</div><div class="v mono up">+14.23%</div></div>
+<div class="cell"><div class="k">今年以來</div><div class="v mono up">+17.67%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+      <h2><span class="bar"></span>技術面與量能</h2>
+      <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="metric"><div class="k">MA5</div><div class="v mono">26.90</div></div>
+        <div class="metric"><div class="k">MA20</div><div class="v mono">25.54</div></div>
+        <div class="metric"><div class="k">MA60</div><div class="v mono">24.74</div></div>
+        <div class="metric"><div class="k">年化波動率 (30日)</div><div class="v mono">31.5%</div></div>
+        <div class="metric"><div class="k">20日均量</div><div class="v mono">4.9 萬張</div></div>
+        <div class="metric"><div class="k">今量 / 20日均量</div><div class="v mono">1.18x</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+      <h2><span class="bar"></span>基本面（FinMind）</h2>
+      <div class="metrics" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="metric">
+          <div class="k">本益比 (PER)</div>
+          <div class="v mono">0.00</div>
+        </div>
+        <div class="metric">
+          <div class="k">股價淨值比 (PBR)</div>
+          <div class="v mono">0.88</div>
+        </div>
+        <div class="metric">
+          <div class="k">殖利率</div>
+          <div class="v mono">2.93%</div>
+        </div>
+        <div class="metric">
+          <div class="k">外資持股比重</div>
+          <div class="v mono">13.4%</div>
+          <div class="text-xs text-slate-400 mt-1">上限 100%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+      <h2><span class="bar"></span>三大法人買賣超（—）</h2>
+      <div class="metrics" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="metric">
+          <div class="k">外資</div>
+          <div class="v mono flat">—</div>
+          <div class="text-xs text-slate-400 mt-1">—</div>
+        </div>
+        <div class="metric">
+          <div class="k">投信</div>
+          <div class="v mono flat">—</div>
+          <div class="text-xs text-slate-400 mt-1">—</div>
+        </div>
+        <div class="metric">
+          <div class="k">自營商</div>
+          <div class="v mono flat">—</div>
+          <div class="text-xs text-slate-400 mt-1">—</div>
+        </div>
+        <div class="metric" style="border-color: var(--accent);">
+          <div class="k">三大合計</div>
+          <div class="v mono flat">—</div>
+          <div class="text-xs text-slate-400 mt-1">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+      <h2><span class="bar"></span>投資關注重點</h2>
+      <ul class="catalyst">
+        <li>本檔股票暫無設定投資重點，請至 <b>ticker_company.json</b> 補上。</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    數據來源：TWSE / TPEx 公開 API（日K 歷史、收盤行情、52 週區間與均線皆由日K 衍生計算）<br>
+    三大法人買賣超數據：FinMind（JWT 存放於 .env，不洩漏至前端）<br>
+    本頁由 Hermes AI Agent 自動生成，僅供資訊參考，不構成投資建議
+  </footer>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const c = document.getElementById("priceChart").getContext("2d");
+new Chart(c, {
+  type: "line",
+  data: { labels: ["07-22", "07-23", "07-24", "07-27", "07-28", "07-29", "07-30", "07-31", "08-03", "08-04", "08-05", "08-06", "08-07", "08-10", "08-11", "08-12", "08-13", "08-14", "08-17", "08-18", "08-19", "08-20", "08-21", "08-24", "08-25", "08-26", "08-27", "08-28", "08-31", "09-01", "09-02", "09-03", "09-04", "09-07", "09-08", "09-09", "09-10", "09-11", "09-14", "09-15", "09-16", "09-17", "09-18", "09-21", "09-22", "09-23", "09-24", "09-29", "09-30", "10-01", "10-02", "10-05", "10-06", "10-07", "10-08", "10-12", "10-13", "10-14", "10-15", "10-16"],
+    datasets: [
+     { label: "收盤價 (NTD)", data: [23.85, 24.0, 23.8, 24.4, 24.8, 24.35, 24.05, 24.3, 23.8, 23.55, 24.05, 24.35, 24.35, 24.55, 24.65, 24.45, 24.05, 24.25, 24.2, 24.1, 24.05, 24.8, 24.85, 24.7, 24.6, 24.3, 24.1, 24.3, 24.4, 25.3, 24.8, 24.45, 24.6, 24.3, 24.3, 24.75, 24.8, 24.5, 23.9, 23.8, 24.05, 24.45, 24.35, 24.15, 24.55, 25.65, 25.25, 25.3, 26.3, 25.55, 25.35, 25.0, 25.2, 25.5, 25.7, 27.0, 26.35, 27.05, 26.8, 27.3],
+      borderColor: "#ef4444", backgroundColor: "rgba(56,189,248,0.08)",
+      borderWidth: 2, pointRadius: 0, tension: 0.25, fill: true },
+   { label: "MA20", data: [23.6, 23.59, 23.55, 23.57, 23.6, 23.61, 23.66, 23.73, 23.73, 23.73, 23.76, 23.82, 23.9, 23.99, 24.09, 24.13, 24.14, 24.17, 24.19, 24.2, 24.21, 24.25, 24.3, 24.31, 24.3, 24.3, 24.3, 24.3, 24.33, 24.42, 24.46, 24.46, 24.48, 24.46, 24.45, 24.46, 24.5, 24.51, 24.5, 24.48, 24.48, 24.46, 24.44, 24.41, 24.41, 24.48, 24.53, 24.58, 24.68, 24.69, 24.72, 24.75, 24.77, 24.84, 24.91, 25.02, 25.1, 25.22, 25.37, 25.54],
+     borderColor: "#f59e0b", borderWidth: 1.5, borderDash: [5,3],
+     pointRadius: 0, fill: false, tension: 0.25 }
+    ] },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: "#8b9bb4" } } },
+    scales: {
+      x: { ticks: { color: "#8b9bb4", maxTicksLimit: 10 }, grid: { color: "rgba(148,163,184,0.08)" } },
+      y: { ticks: { color: "#8b9bb4" }, grid: { color: "rgba(148,163,184,0.08)" }, beginAtZero: false }
+    } }
+});
+</script>
+</body>
+</html>
