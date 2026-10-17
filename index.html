@@ -28,7 +28,6 @@
   }
   .wrap { max-width: 1080px; margin: 0 auto; }
   .mono { font-variant-numeric: tabular-nums; font-family: "JetBrains Mono", "Consolas", monospace; }
-
   header.hero {
     display: flex; justify-content: space-between; align-items: flex-end;
     gap: 16px; flex-wrap: wrap;
@@ -42,15 +41,21 @@
     background: var(--chip); border: 1px solid var(--border);
     padding: 6px 14px; border-radius: 999px;
   }
-
+  .section { margin-bottom: 40px; }
+  .sec-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sec-title .stamp { font-size: 12px; padding: 4px 10px; }
   .cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
   }
-  @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 620px) { .cards { grid-template-columns: 1fr; } }
-
   .card {
     display: flex; flex-direction: column; gap: 12px;
     background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
@@ -79,12 +84,107 @@
   .card .chg { font-size: 14px; font-weight: 600; }
   .card .meta { color: var(--muted); font-size: 12px; }
   .card .meta span { display: block; margin-top: 2px; }
-
   .up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--flat); }
   .card .price.up, .card .chg.up { color: var(--up); }
   .card .price.down, .card .chg.down { color: var(--down); }
 
-  footer { margin-top: 30px; text-align: center; color: #5b6c88; font-size: 12px; line-height: 1.8; }
+  /* 熱門股面板 */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .tabs button {
+    flex: 1;
+    padding: 12px 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .tabs button.active {
+    background: var(--accent);
+    color: #06121f;
+  }
+  .panel {
+    display: none;
+  }
+  .panel.active {
+    display: block;
+  }
+  .hrow {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+  }
+  .hrow:last-child { border-bottom: none; }
+  .hrow:hover { background: rgba(56,189,248,0.06); }
+  .hrank {
+    min-width: 28px;
+    font-weight: 700;
+    text-align: right;
+    margin-right: 8px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .hcode {
+    min-width: 56px;
+    font-weight: 600;
+    font-family: monospace;
+  }
+  .hname {
+    flex: 1;
+    min-width: 0;
+  }
+  .hprice {
+    min-width: 72px;
+    text-align: right;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+  .hchg {
+    min-width: 68px;
+    text-align: right;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  .hvol, .hamt {
+    min-width: 80px;
+    text-align: right;
+  }
+  .hamp {
+    min-width: 64px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .hind {
+    font-size: 12px;
+    color: var(--accent);
+    opacity: 0.9;
+    margin-right: 4px;
+    font-style: normal;
+  }
+  .mkt {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-left: 4px;
+  }
+  footer {
+    margin-top: 30px;
+    text-align: center;
+    color: #5b6c88;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  @media (max-width: 620px) {
+    .cards { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
 </head>
 <body>
@@ -95,11 +195,13 @@
       <h1>Auto<span>Stock</span> 儀表板</h1>
       <p>台股每日收盤自動更新：即時收盤價、漲跌幅、近 5 日走勢與投資關注重點，由 Hermes AI Agent 每日排程自動生成並推送。</p>
     </div>
-    <span class="stamp">台股收盤儀表板</span>
+    <span class="stamp">生成時間：2026-10-17 12:13</span>
   </header>
 
-  <div class="cards">
-    <a class="card" href="1434.html">
+  <section class="section">
+    <h2 class="sec-title">🔶 我的自訂股</h2>
+    <div class="cards">
+      <a class="card" href="1434.html">
   <div class="row1">
     <span class="ticker mono">1434.TW</span>
     <span class="industry">紡織業</span>
@@ -111,7 +213,7 @@
     <span class="chg mono up">▲ 0.30 (1.49%)</span>
   </div>
 </a>
-    <a class="card" href="2327.html">
+<a class="card" href="2327.html">
   <div class="row1">
     <span class="ticker mono">2327.TW</span>
     <span class="industry">被動元件</span>
@@ -123,7 +225,7 @@
     <span class="chg mono down">▼ 6.00 (1.05%)</span>
   </div>
 </a>
-    <a class="card" href="2330.html">
+<a class="card" href="2330.html">
   <div class="row1">
     <span class="ticker mono">2330.TW</span>
     <span class="industry">半導體</span>
@@ -135,7 +237,7 @@
     <span class="chg mono down">▼ 20.00 (0.82%)</span>
   </div>
 </a>
-    <a class="card" href="6139.html">
+<a class="card" href="6139.html">
   <div class="row1">
     <span class="ticker mono">6139.TW</span>
     <span class="industry">工業工程</span>
@@ -147,7 +249,7 @@
     <span class="chg mono down">▼ 13.00 (1.88%)</span>
   </div>
 </a>
-    <a class="card" href="6213.html">
+<a class="card" href="6213.html">
   <div class="row1">
     <span class="ticker mono">6213.TW</span>
     <span class="industry">電子零組件</span>
@@ -159,7 +261,7 @@
     <span class="chg mono down">▼ 25.00 (3.13%)</span>
   </div>
 </a>
-    <a class="card" href="8299.html">
+<a class="card" href="8299.html">
   <div class="row1">
     <span class="ticker mono">8299.TW</span>
     <span class="industry">半導體</span>
@@ -171,7 +273,65 @@
     <span class="chg mono up">▲ 60.00 (3.28%)</span>
   </div>
 </a>
-  </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="sec-title">🔥 今日熱門股 <span class="stamp">上市 2026-10-16 ・ 上櫃 2026-10-16 ・ 成交額 ≥1 億（共 519 檔符合門檻）</span></h2>
+    <div class="tabs"><button class="tab active" data-t="amount_top10">金額榜</button><button class="tab active" data-t="trades_top10">活躍榜</button><button class="tab active" data-t="up_top10">漲幅榜</button><button class="tab active" data-t="down_top10">跌幅榜</button></div>
+<div class="panel active" id="panel-amount_top10"><a class="hrow" href="2330.html">  <span class="hrank">1</span>  <span class="hcode">2330</span>  <span class="hname">台積電 <span class="hind">半導體</span><em class="mkt">上市</em></span>  <span class="hprice up">2,420.00</span>  <span class="hchg up">+0.83%</span>  <span class="hamp">+1.04%</span>  <span class="hvol">4.3 萬張</span>  <span class="hamt">1,045.8 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">2</span>  <span class="hcode">1303</span>  <span class="hname">南亞 <em class="mkt">上市</em></span>  <span class="hprice up">307.00</span>  <span class="hchg up">+2.50%</span>  <span class="hamp">+4.84%</span>  <span class="hvol">12.0 萬張</span>  <span class="hamt">373.7 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">3</span>  <span class="hcode">2454</span>  <span class="hname">聯發科 <em class="mkt">上市</em></span>  <span class="hprice up">4,250.00</span>  <span class="hchg up">+2.04%</span>  <span class="hamp">+2.88%</span>  <span class="hvol">8,683 張</span>  <span class="hamt">372.6 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">4</span>  <span class="hcode">3008</span>  <span class="hname">大立光 <em class="mkt">上市</em></span>  <span class="hprice up">6,400.00</span>  <span class="hchg up">+3.31%</span>  <span class="hamp">+11.78%</span>  <span class="hvol">4,813 張</span>  <span class="hamt">309.3 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">5</span>  <span class="hcode">6669</span>  <span class="hname">緯穎 <em class="mkt">上市</em></span>  <span class="hprice up">1,845.00</span>  <span class="hchg up">+3.36%</span>  <span class="hamp">+6.72%</span>  <span class="hvol">1.4 萬張</span>  <span class="hamt">257.7 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">6</span>  <span class="hcode">2408</span>  <span class="hname">南亞科 <em class="mkt">上市</em></span>  <span class="hprice up">447.50</span>  <span class="hchg up">+1.82%</span>  <span class="hamp">+3.98%</span>  <span class="hvol">4.7 萬張</span>  <span class="hamt">212.9 億</span></a>
+<a class="hrow" href="2327.html">  <span class="hrank">7</span>  <span class="hcode">2327</span>  <span class="hname">國巨* <span class="hind">被動元件</span><em class="mkt">上市</em></span>  <span class="hprice up">567.00</span>  <span class="hchg up">+1.07%</span>  <span class="hamp">+4.99%</span>  <span class="hvol">3.6 萬張</span>  <span class="hamt">210.4 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">8</span>  <span class="hcode">1815</span>  <span class="hname">富喬 <em class="mkt">上櫃</em></span>  <span class="hprice up">140.00</span>  <span class="hchg up">+9.80%</span>  <span class="hamp">+9.02%</span>  <span class="hvol">14.9 萬張</span>  <span class="hamt">205.5 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">9</span>  <span class="hcode">2368</span>  <span class="hname">金像電 <em class="mkt">上市</em></span>  <span class="hprice up">1,245.00</span>  <span class="hchg up">+4.62%</span>  <span class="hamp">+7.56%</span>  <span class="hvol">1.6 萬張</span>  <span class="hamt">196.8 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">10</span>  <span class="hcode">6274</span>  <span class="hname">台燿 <em class="mkt">上櫃</em></span>  <span class="hprice down">1,615.00</span>  <span class="hchg down">-0.62%</span>  <span class="hamp">+5.85%</span>  <span class="hvol">1.1 萬張</span>  <span class="hamt">178.8 億</span></a></div><div class="panel active" id="panel-trades_top10"><a class="hrow" href="2330.html">  <span class="hrank">1</span>  <span class="hcode">2330</span>  <span class="hname">台積電 <span class="hind">半導體</span><em class="mkt">上市</em></span>  <span class="hprice up">2,420.00</span>  <span class="hchg up">+0.83%</span>  <span class="hamp">+1.04%</span>  <span class="hvol">4.3 萬張</span>  <span class="hamt">1,045.8 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">2</span>  <span class="hcode">2409</span>  <span class="hname">友達 <em class="mkt">上市</em></span>  <span class="hprice up">35.90</span>  <span class="hchg up">+2.87%</span>  <span class="hamp">+4.15%</span>  <span class="hvol">34.2 萬張</span>  <span class="hamt">123.3 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">3</span>  <span class="hcode">1303</span>  <span class="hname">南亞 <em class="mkt">上市</em></span>  <span class="hprice up">307.00</span>  <span class="hchg up">+2.50%</span>  <span class="hamp">+4.84%</span>  <span class="hvol">12.0 萬張</span>  <span class="hamt">373.7 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">4</span>  <span class="hcode">1815</span>  <span class="hname">富喬 <em class="mkt">上櫃</em></span>  <span class="hprice up">140.00</span>  <span class="hchg up">+9.80%</span>  <span class="hamp">+9.02%</span>  <span class="hvol">14.9 萬張</span>  <span class="hamt">205.5 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">5</span>  <span class="hcode">6669</span>  <span class="hname">緯穎 <em class="mkt">上市</em></span>  <span class="hprice up">1,845.00</span>  <span class="hchg up">+3.36%</span>  <span class="hamp">+6.72%</span>  <span class="hvol">1.4 萬張</span>  <span class="hamt">257.7 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">6</span>  <span class="hcode">1802</span>  <span class="hname">台玻 <em class="mkt">上市</em></span>  <span class="hprice up">66.90</span>  <span class="hchg up">+6.70%</span>  <span class="hamp">+8.93%</span>  <span class="hvol">14.3 萬張</span>  <span class="hamt">94.9 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">7</span>  <span class="hcode">6278</span>  <span class="hname">台表科 <em class="mkt">上市</em></span>  <span class="hprice up">298.50</span>  <span class="hchg up">+1.53%</span>  <span class="hamp">+7.48%</span>  <span class="hvol">4.0 萬張</span>  <span class="hamt">121.3 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">8</span>  <span class="hcode">2454</span>  <span class="hname">聯發科 <em class="mkt">上市</em></span>  <span class="hprice up">4,250.00</span>  <span class="hchg up">+2.04%</span>  <span class="hamp">+2.88%</span>  <span class="hvol">8,683 張</span>  <span class="hamt">372.6 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">9</span>  <span class="hcode">6488</span>  <span class="hname">環球晶 <em class="mkt">上櫃</em></span>  <span class="hprice down">902.00</span>  <span class="hchg down">-2.28%</span>  <span class="hamp">+4.98%</span>  <span class="hvol">1.6 萬張</span>  <span class="hamt">149.3 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">10</span>  <span class="hcode">6217</span>  <span class="hname">中探針 <em class="mkt">上櫃</em></span>  <span class="hprice down">194.00</span>  <span class="hchg down">-0.51%</span>  <span class="hamp">+10.00%</span>  <span class="hvol">1.9 萬張</span>  <span class="hamt">37.7 億</span></a></div><div class="panel active" id="panel-up_top10"><a class="hrow" href="#">  <span class="hrank">1</span>  <span class="hcode">6756</span>  <span class="hname">威鋒電子 <em class="mkt">上市</em></span>  <span class="hprice up">110.00</span>  <span class="hchg up">+10.00%</span>  <span class="hamp">+8.50%</span>  <span class="hvol">938 張</span>  <span class="hamt">1.0 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">2</span>  <span class="hcode">3354</span>  <span class="hname">律勝 <em class="mkt">上櫃</em></span>  <span class="hprice up">41.80</span>  <span class="hchg up">+10.00%</span>  <span class="hamp">+4.47%</span>  <span class="hvol">2,728 張</span>  <span class="hamt">1.1 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">3</span>  <span class="hcode">6517</span>  <span class="hname">保勝光學 <em class="mkt">上櫃</em></span>  <span class="hprice up">77.00</span>  <span class="hchg up">+10.00%</span>  <span class="hamp">+8.57%</span>  <span class="hvol">2,741 張</span>  <span class="hamt">2.1 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">4</span>  <span class="hcode">6933</span>  <span class="hname">AMAX-KY <em class="mkt">上市</em></span>  <span class="hprice up">451.50</span>  <span class="hchg up">+9.99%</span>  <span class="hamp">+6.58%</span>  <span class="hvol">2,066 張</span>  <span class="hamt">9.1 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">5</span>  <span class="hcode">3701</span>  <span class="hname">大眾控 <em class="mkt">上市</em></span>  <span class="hprice up">66.10</span>  <span class="hchg up">+9.98%</span>  <span class="hamp">+8.49%</span>  <span class="hvol">6,389 張</span>  <span class="hamt">4.2 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">6</span>  <span class="hcode">6668</span>  <span class="hname">中揚光 <em class="mkt">上市</em></span>  <span class="hprice up">68.30</span>  <span class="hchg up">+9.98%</span>  <span class="hamp">+9.82%</span>  <span class="hvol">1.2 萬張</span>  <span class="hamt">8.1 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">7</span>  <span class="hcode">4542</span>  <span class="hname">科嶠 <em class="mkt">上櫃</em></span>  <span class="hprice up">358.00</span>  <span class="hchg up">+9.98%</span>  <span class="hamp">+9.83%</span>  <span class="hvol">2,128 張</span>  <span class="hamt">7.5 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">8</span>  <span class="hcode">6148</span>  <span class="hname">驊宏資 <em class="mkt">上櫃</em></span>  <span class="hprice up">41.95</span>  <span class="hchg up">+9.96%</span>  <span class="hamp">+9.96%</span>  <span class="hvol">1.2 萬張</span>  <span class="hamt">4.8 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">9</span>  <span class="hcode">6620</span>  <span class="hname">漢達 <em class="mkt">上櫃</em></span>  <span class="hprice up">143.50</span>  <span class="hchg up">+9.96%</span>  <span class="hamp">+7.66%</span>  <span class="hvol">5,409 張</span>  <span class="hamt">7.7 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">10</span>  <span class="hcode">6925</span>  <span class="hname">意藍 <em class="mkt">上櫃</em></span>  <span class="hprice up">90.50</span>  <span class="hchg up">+9.96%</span>  <span class="hamp">+7.17%</span>  <span class="hvol">2,047 張</span>  <span class="hamt">1.8 億</span></a></div><div class="panel active" id="panel-down_top10"><a class="hrow" href="#">  <span class="hrank">1</span>  <span class="hcode">6538</span>  <span class="hname">倉和 <em class="mkt">上櫃</em></span>  <span class="hprice down">285.00</span>  <span class="hchg down">-5.63%</span>  <span class="hamp">+8.28%</span>  <span class="hvol">3,669 張</span>  <span class="hamt">10.5 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">2</span>  <span class="hcode">4174</span>  <span class="hname">浩鼎 <em class="mkt">上櫃</em></span>  <span class="hprice down">56.90</span>  <span class="hchg down">-5.01%</span>  <span class="hamp">+9.52%</span>  <span class="hvol">2,780 張</span>  <span class="hamt">1.6 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">3</span>  <span class="hcode">3374</span>  <span class="hname">精材 <em class="mkt">上櫃</em></span>  <span class="hprice down">433.50</span>  <span class="hchg down">-4.20%</span>  <span class="hamp">+8.95%</span>  <span class="hvol">1.3 萬張</span>  <span class="hamt">59.4 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">4</span>  <span class="hcode">3564</span>  <span class="hname">其陽 <em class="mkt">上櫃</em></span>  <span class="hprice down">68.40</span>  <span class="hchg down">-4.07%</span>  <span class="hamp">+7.01%</span>  <span class="hvol">1,983 張</span>  <span class="hamt">1.4 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">5</span>  <span class="hcode">4979</span>  <span class="hname">華星光 <em class="mkt">上櫃</em></span>  <span class="hprice down">520.00</span>  <span class="hchg down">-4.06%</span>  <span class="hamp">+7.75%</span>  <span class="hvol">9,795 張</span>  <span class="hamt">51.8 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">6</span>  <span class="hcode">6290</span>  <span class="hname">良維 <em class="mkt">上櫃</em></span>  <span class="hprice down">265.00</span>  <span class="hchg down">-3.81%</span>  <span class="hamp">+6.53%</span>  <span class="hvol">5,584 張</span>  <span class="hamt">15.2 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">7</span>  <span class="hcode">3485</span>  <span class="hname">敘豐 <em class="mkt">上櫃</em></span>  <span class="hprice down">239.00</span>  <span class="hchg down">-3.63%</span>  <span class="hamp">+11.69%</span>  <span class="hvol">1,125 張</span>  <span class="hamt">2.8 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">8</span>  <span class="hcode">3081</span>  <span class="hname">聯亞 <em class="mkt">上櫃</em></span>  <span class="hprice down">2,545.00</span>  <span class="hchg down">-3.60%</span>  <span class="hamp">+7.39%</span>  <span class="hvol">4,474 張</span>  <span class="hamt">115.5 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">9</span>  <span class="hcode">3685</span>  <span class="hname">元創精密 <em class="mkt">上櫃</em></span>  <span class="hprice down">36.30</span>  <span class="hchg down">-3.59%</span>  <span class="hamp">+6.91%</span>  <span class="hvol">3,469 張</span>  <span class="hamt">1.3 億</span></a>
+<a class="hrow" href="#">  <span class="hrank">10</span>  <span class="hcode">2221</span>  <span class="hname">大甲 <em class="mkt">上櫃</em></span>  <span class="hprice down">122.00</span>  <span class="hchg down">-3.56%</span>  <span class="hamp">+18.58%</span>  <span class="hvol">1.0 萬張</span>  <span class="hamt">12.9 億</span></a></div>
+<script>
+  (function() {
+    const tabs = document.querySelectorAll('.tabs button');
+    const panels = document.querySelectorAll('.panel');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        const panel = document.getElementById('panel-' + tab.dataset.t);
+        if (panel) panel.classList.add('active');
+      });
+    });
+  })();
+</script>
+  </section>
 
   <footer>
     數據來源：臺灣證券交易所 (TWSE)、金融櫃買交易所 (TPEx) 公開 API ｜ 每日 16:00 自動更新<br>

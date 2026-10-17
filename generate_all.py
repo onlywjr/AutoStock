@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 """
-generate_all.py — AutoStock 頁面生成器
+generate_all.py — AutoStock 頁面生成器（含自訂股 + 熱門股）
 
-功能:
+流程:
   1. 逐檔股票呼叫 fetch_stock.fetch_data() 取得最新收盤 + 近 5 日歷史
   2. 寫入 data/<代號>.json（備份 / 除錯用）
   3. 以 templates/dashboard_template.html 產出 <代號>.html
-  4. 以 templates/index_template.html 產出 index.html（含全部卡片）
-
-用法:
-    python generate_all.py            # 產出全部頁面
-抓取失敗時，會退回上一次的 data/<代號>.json 重繪頁面（不讓頁面掛掉）。
+  4. 呼叫 fetch_market.build_hot() → 產出 data/hot_stocks.json
+  5. 以新 layout（自訂股 + 熱門股四榜）產出 index.html
+  6. 冪等：相同資料不會產生新的 git 差異
 """
 import sys, os, json, datetime, html
 
@@ -18,6 +16,7 @@ REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, REPO_ROOT)
 
 import fetch_stock
+import fetch_market
 
 TICKERS = ['1434', '2327', '2330', '6139', '6213', '8299']
 DATA_DIR = os.path.join(REPO_ROOT, 'data')
@@ -38,13 +37,21 @@ def fmt_amount(x):
 
 
 def fmt_volume(x):
-    """成交股數 → 張（1 張 = 1,000 股，TWSE 標準交易單位）。≥1 萬張顯示「X.X 萬張」。"""
+    """成交股數 → 張（1 張 = 1,000 股）。≥1 萬張顯示「X.X 萬張」。"""
     if not x:
         return '—'
     lots = x / 1000
     if lots >= 10000:
         return f'{lots / 10000:,.1f} 萬張'
     return f'{lots:,.0f} 張'
+
+
+def fmt_amp(v):
+    """漲跌幅區間（振幅）：例如 +1.23% 或 —。」"""
+    if v is None:
+        return '—'
+    sign = '+' if v > 0 else ''
+    return f'{sign}{v:.2f}%'
 
 
 def change_info(change, pct):
@@ -71,16 +78,13 @@ def perf_class(v):
 
 
 def chart_section(d):
-    """回傳 (CHART_TITLE, CHART_BODY, CHART_SCRIPT)。
-
-    優先用 60 日收盤 + MA20（TWSE）；TPEx 無歷史時退回可用點數的圖或說明。
-    """
+    """回傳 (CHART_TITLE, CHART_BODY, CHART_SCRIPT)。"""
     chart = d.get('chart')
     if chart and len(chart.get('close', [])) >= 2:
         labels = chart['labels']
         close = chart['close']
         ma20 = chart.get('ma20')
-        color = '#ef4444' if close[-1] >= close[0] else '#22c55e'  # 紅漲綠跌
+        color = '#ef4444' if close[-1] >= close[0] else '#22c55e'
         title = f"近 {len(close)} 日收盤與 MA20"
         ma_line = ('\n   { label: "MA20", data: ' + json.dumps(ma20) + ',\n'
                    '     borderColor: "#f59e0b", borderWidth: 1.5, borderDash: [5,3],\n'
@@ -142,7 +146,6 @@ def chart_section(d):
 
 
 def w52_bar(stats):
-    """52 週區間條（含高低標與 52 週漲跌）。stats 為 None 時顯示說明。"""
     if not stats or stats.get('high52') is None:
         return ('<div class="chart-note">上櫃股無歷史資料（TPEx 僅提供最新收盤），'
                 '52 週區間暫無法顯示。</div>')
@@ -158,7 +161,6 @@ def w52_bar(stats):
 
 
 def perf_items(stats):
-    """階段表現 5 格：52週 / 6月 / 3月 / 1月 / YTD。"""
     keys = [('52 週', 'chg_52w'), ('6 個月', 'm6'), ('3 個月', 'm3'), ('1 個月', 'm1'), ('今年以來', 'ytd')]
     if not stats:
         cells = [f'<div class="cell"><div class="k">{k}</div><div class="v">—</div></div>' for k, _ in keys]
@@ -224,8 +226,9 @@ def build_stock_page(d: dict) -> str:
     return out
 
 
-def build_index(records) -> str:
-    tpl = load_template('index_template.html')
+# ---------------------------------------------------------------- 首頁自訂股卡片
+
+def build_custom_cards(records: dict) -> str:
     cards = []
     for sym in TICKERS:
         d = records.get(sym)
@@ -255,9 +258,299 @@ def build_index(records) -> str:
     <span class="chg mono {cls}">{sign} {fmt_price(abs(d.get("change", 0)))} ({abs(d.get("change_pct", 0)):,.2f}%)</span>
   </div>
 </a>''')
+    return '\n'.join(cards)
+
+
+# ---------------------------------------------------------------- 熱門股
+
+def build_hot_section(hot_data: dict) -> str:
+    """回傳熱門股四榜的 HTML（含 tab + panel）。"""
+    def hot_row(r, show_industry=False):
+        sym = r['symbol']
+        link = f'{sym}.html' if sym in TICKERS else '#'
+        cls = perf_class(r['change_pct'])
+        amp = fmt_amp(r.get('amplitude'))
+        ind = html.escape(r.get('industry', '')) if r.get('industry') else ''
+        ind_cell = f'<span class="hind">{ind}</span>' if ind else ''
+        return (
+            f'<a class="hrow" href="{link}">'
+            f'  <span class="hrank">{r["rank"]}</span>'
+            f'  <span class="hcode">{sym}</span>'
+            f'  <span class="hname">{html.escape(r["name"])} {ind_cell}<em class="mkt">{r["market"]}</em></span>'
+            f'  <span class="hprice {cls}">{fmt_price(r["close"])}</span>'
+            f'  <span class="hchg {cls}">{fmt_signed(r["change_pct"])}</span>'
+            f'  <span class="hamp">{amp}</span>'
+            f'  <span class="hvol">{fmt_volume(r["volume"])}</span>'
+            f'  <span class="hamt">{fmt_amount(r["amount"])}</span>'
+            f'</a>'
+        )
+    panels = []
+    for key, label in [
+        ('amount_top10', '金額榜'),
+        ('trades_top10', '活躍榜'),
+        ('up_top10', '漲幅榜'),
+        ('down_top10', '跌幅榜'),
+    ]:
+        recs = hot_data.get(key, []) or []
+        show_ind = (key == 'amount_top10')  # 只有金額榜前 10 顯示產業
+        rows = [hot_row(r, show_industry=show_ind) for r in recs]
+        panel = '<div class="panel active" id="panel-' + key + '">' + ('\n'.join(rows) or '<div style="text-align:center; padding:24px; color:#8b9bb4;">無資料</div>') + '</div>'
+        panels.append(panel)
+    tabs_html = '<div class="tabs">' + ''.join(
+        f'<button class="tab active" data-t="{key}">{label}</button>'
+        for key, label in [('amount_top10', '金額榜'), ('trades_top10', '活躍榜'),
+                           ('up_top10', '漲幅榜'), ('down_top10', '跌幅榜')]
+    ) + '</div>'
+    return f'''{tabs_html}
+{''.join(panels)}
+<script>
+  (function() {{
+    const tabs = document.querySelectorAll('.tabs button');
+    const panels = document.querySelectorAll('.panel');
+    tabs.forEach(tab => {{
+      tab.addEventListener('click', () => {{
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        const panel = document.getElementById('panel-' + tab.dataset.t);
+        if (panel) panel.classList.add('active');
+      }});
+    }});
+  }})();
+</script>'''
+
+
+# ---------------------------------------------------------------- 生成首頁（自訂股 + 熱門股）
+
+def build_index(records: dict, hot_data: dict) -> str:
+    custom_html = build_custom_cards(records)
+    hot_html = build_hot_section(hot_data)
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-    out = tpl.replace('{{CARDS}}', '\n    '.join(cards)).replace('{{UPDATE_TIME}}', now)
-    return out
+    twse_date = html.escape(str(hot_data.get('twse_date', '')))
+    tpex_date = html.escape(str(hot_data.get('tpex_date', '')))
+    counts = hot_data.get('counts', {})
+    qualifying = counts.get('qualifying', '?')
+    return f'''<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoStock 股票儀表板</title>
+<style>
+  :root {{
+    --bg: #0b1120;
+    --card: #111a2e;
+    --card2: #16213a;
+    --border: #22304f;
+    --text: #e6edf7;
+    --muted: #8b9bb4;
+    --up: #ef4444;
+    --down: #22c55e;
+    --flat: #f59e0b;
+    --accent: #38bdf8;
+    --chip: #1d2a47;
+  }}
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{
+    background: radial-gradient(1200px 500px at 80% -10%, #16233f 0%, var(--bg) 55%) fixed;
+    color: var(--text);
+    font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 36px 20px 48px;
+  }}
+  .wrap {{ max-width: 1080px; margin: 0 auto; }}
+  .mono {{ font-variant-numeric: tabular-nums; font-family: "JetBrains Mono", "Consolas", monospace; }}
+  header.hero {{
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 16px; flex-wrap: wrap;
+    margin-bottom: 26px;
+  }}
+  header h1 {{ font-size: 30px; font-weight: 800; letter-spacing: .5px; }}
+  header h1 span {{ color: var(--accent); }}
+  header p {{ color: var(--muted); font-size: 14px; margin-top: 6px; line-height: 1.7; max-width: 560px; }}
+  .stamp {{
+    color: var(--muted); font-size: 13px;
+    background: var(--chip); border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 999px;
+  }}
+  .section {{ margin-bottom: 40px; }}
+  .sec-title {{
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }}
+  .sec-title .stamp {{ font-size: 12px; padding: 4px 10px; }}
+  .cards {{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }}
+  .card {{
+    display: flex; flex-direction: column; gap: 12px;
+    background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+    color: inherit;
+    text-decoration: none;
+    transition: transform .15s ease, border-color .15s ease;
+  }}
+  .card:hover {{ transform: translateY(-3px); border-color: var(--accent); }}
+  .card .row1 {{ display: flex; align-items: center; gap: 10px; }}
+  .card .ticker {{
+    background: var(--accent); color: #06121f;
+    font-weight: 700; font-size: 13px;
+    padding: 2px 10px; border-radius: 999px;
+  }}
+  .card .industry {{ color: var(--muted); font-size: 13px; }}
+  .card h3 {{ font-size: 21px; font-weight: 700; }}
+  .card h3 small {{ color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 8px; }}
+  .card .pricerow {{
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-top: 1px solid var(--border); padding-top: 12px; margin-top: auto;
+  }}
+  .card .price {{ font-size: 26px; font-weight: 800; }}
+  .card .chg {{ font-size: 14px; font-weight: 600; }}
+  .card .meta {{ color: var(--muted); font-size: 12px; }}
+  .card .meta span {{ display: block; margin-top: 2px; }}
+  .up {{ color: var(--up); }} .down {{ color: var(--down); }} .flat {{ color: var(--flat); }}
+  .card .price.up, .card .chg.up {{ color: var(--up); }}
+  .card .price.down, .card .chg.down {{ color: var(--down); }}
+
+  /* 熱門股面板 */
+  .tabs {{
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }}
+  .tabs button {{
+    flex: 1;
+    padding: 12px 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+  }}
+  .tabs button.active {{
+    background: var(--accent);
+    color: #06121f;
+  }}
+  .panel {{
+    display: none;
+  }}
+  .panel.active {{
+    display: block;
+  }}
+  .hrow {{
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+  }}
+  .hrow:last-child {{ border-bottom: none; }}
+  .hrow:hover {{ background: rgba(56,189,248,0.06); }}
+  .hrank {{
+    min-width: 28px;
+    font-weight: 700;
+    text-align: right;
+    margin-right: 8px;
+    font-size: 14px;
+    color: var(--muted);
+  }}
+  .hcode {{
+    min-width: 56px;
+    font-weight: 600;
+    font-family: monospace;
+  }}
+  .hname {{
+    flex: 1;
+    min-width: 0;
+  }}
+  .hprice {{
+    min-width: 72px;
+    text-align: right;
+    font-weight: 700;
+    margin-left: 4px;
+  }}
+  .hchg {{
+    min-width: 68px;
+    text-align: right;
+    font-weight: 600;
+    margin-left: 4px;
+  }}
+  .hvol, .hamt {{
+    min-width: 80px;
+    text-align: right;
+  }}
+  .hamp {{
+    min-width: 64px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }}
+  .hind {{
+    font-size: 12px;
+    color: var(--accent);
+    opacity: 0.9;
+    margin-right: 4px;
+    font-style: normal;
+  }}
+  .mkt {{
+    font-size: 12px;
+    opacity: 0.8;
+    margin-left: 4px;
+  }}
+  footer {{
+    margin-top: 30px;
+    text-align: center;
+    color: #5b6c88;
+    font-size: 12px;
+    line-height: 1.8;
+  }}
+  @media (max-width: 620px) {{
+    .cards {{ grid-template-columns: repeat(2, 1fr); }}
+  }}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div>
+      <h1>Auto<span>Stock</span> 儀表板</h1>
+      <p>台股每日收盤自動更新：即時收盤價、漲跌幅、近 5 日走勢與投資關注重點，由 Hermes AI Agent 每日排程自動生成並推送。</p>
+    </div>
+    <span class="stamp">生成時間：{now}</span>
+  </header>
+
+  <section class="section">
+    <h2 class="sec-title">🔶 我的自訂股</h2>
+    <div class="cards">
+      {custom_html}
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="sec-title">🔥 今日熱門股 <span class="stamp">上市 {twse_date} ・ 上櫃 {tpex_date} ・ 成交額 ≥1 億（共 {qualifying} 檔符合門檻）</span></h2>
+    {hot_html}
+  </section>
+
+  <footer>
+    數據來源：臺灣證券交易所 (TWSE)、金融櫃買交易所 (TPEx) 公開 API ｜ 每日 16:00 自動更新<br>
+    本頁由 Hermes AI Agent 自動生成，僅供資訊參考，不構成投資建議
+  </footer>
+
+</div>
+</body>
+</html>
+'''
 
 
 def main():
@@ -276,7 +569,7 @@ def main():
         except Exception as e:
             print(f'[FAIL] {sym} {e}')
             failed.append(sym)
-            if os.path.exists(path):          # 退回上一版資料
+            if os.path.exists(path):
                 with open(path, encoding='utf-8') as f:
                     records[sym] = json.load(f)
                 print(f'[FALLBACK] {sym} 使用 data/{sym}.json 舊資料重繪')
@@ -288,9 +581,14 @@ def main():
             f.write(page)
         print(f'[PAGE] {sym}.html')
 
-    # 產生 index
+    # 產生熱門股資料（寫入 data/hot_stocks.json）
+    print('--- building hot stocks ---')
+    hot_data = fetch_market.build_hot(out_path=os.path.join(DATA_DIR, 'hot_stocks.json'))
+    print(f'[HOT]  TWSE {hot_data["counts"].get("twse",0)} + TPEx {hot_data["counts"].get("tpex",0)} → {hot_data["counts"].get("qualifying",0)} qualifying')
+
+    # 產生 index（含自訂股 + 熱門股）
     with open(os.path.join(REPO_ROOT, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(build_index(records))
+        f.write(build_index(records, hot_data))
     print('[PAGE] index.html')
 
     if failed:
