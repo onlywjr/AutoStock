@@ -18,7 +18,7 @@ REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 TICKERS_FILE = os.path.join(REPO_ROOT, 'ticker_company.json')
 
 # ── JWT 從 .env 讀取（不在程式碼中明文寫入）─────────────────
-def _load_token():
+def _load_finmind_token() -> str:
     env_file = os.path.join(REPO_ROOT, '.env')
     try:
         with open(env_file, encoding='utf-8') as f:
@@ -30,7 +30,7 @@ def _load_token():
         pass
     return ''
 
-JWT = _load_token()
+JWT = _load_finmind_token()
 if not JWT:
     sys.stderr.write('ERROR: .env 中沒有 FINMIND_TOKEN，請將 token 寫入 .env\n')
     sys.exit(1)
