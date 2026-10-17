@@ -1,6 +1,6 @@
 {
   "symbol": "1101",
-  "company": "Unknown",
+  "company": "台泥",
   "date": "2026-10-16",
   "open": 27.1,
   "high": 27.7,
@@ -1400,9 +1400,9 @@
       "volume": 57437884
     }
   ],
-  "full_name": "Unknown",
-  "industry": "Unknown",
-  "desc": "",
+  "full_name": "台泥股份有限公司",
+  "industry": "水泥建材",
+  "desc": "台灣最大水泥製造商，並跨足綠色能源、低碳建材與資源循環。",
   "catalysts": [],
   "per": 0.0,
   "pbr": 0.88,

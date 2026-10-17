@@ -70,14 +70,16 @@ def update_tickers(action: str, ticker: str) -> bool:
         if ticker in data:
             print(f'[SKIP] {ticker} 已存在於 ticker_company.json')
             return False
+        # 嘗試從 TPEx API 抓取公司名稱（若為上櫃股）
+        name, full_name, industry = _fetch_company_info(ticker)
         data[ticker] = {
-            'name': 'Unknown',
-            'full_name': 'Unknown',
-            'industry': 'Unknown',
+            'name': name,
+            'full_name': full_name,
+            'industry': industry,
             'desc': '',
             'catalysts': [],
         }
-        print(f'[ADD] 已新增 {ticker} 到 ticker_company.json')
+        print(f'[ADD] 已新增 {ticker} ({name}) 到 ticker_company.json')
     elif action == 'remove':
         if ticker not in data:
             print(f'[SKIP] {ticker} 不存在於 ticker_company.json，跳過')
@@ -93,8 +95,40 @@ def update_tickers(action: str, ticker: str) -> bool:
     return True
 
 
+def _fetch_company_info(ticker: str) -> tuple:
+    """嘗試從 TPEx API 抓取公司名稱與產業（若為上櫃股）。
+    回傳 (name, full_name, industry)。"""
+    import urllib.request, ssl
+    ctx = ssl._create_unverified_context()
+    # 先試 TPEx API
+    try:
+        url = (f'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes'
+               f'?l=zh-tw&d=2026-10-01&se=EW')
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, context=ctx, timeout=15) as resp:
+            rows = json.loads(resp.read().decode('utf-8'))
+        for item in rows:
+            if str(item.get('SecuritiesCompanyCode', '')).zfill(4) == ticker:
+                name = item.get('CompanyName', '')
+                return name, name, '上櫃'
+    except Exception:
+        pass
+    # 若不在 TPEx，則回傳 Unknown
+    return 'Unknown', 'Unknown', 'Unknown'
+
+
 def regenerate() -> bool:
-    """執行 generate_all.py 重新產生頁面。"""
+    """執行 fetch_institutional.py + generate_all.py 重新產生頁面。"""
+    # 先更新法人買賣超資料
+    r = run([sys.executable, os.path.join(REPO_ROOT, 'fetch_institutional.py')],
+            timeout=300)
+    if r.returncode != 0:
+        print(f'[WARN] fetch_institutional.py 失敗 (exit={r.returncode})，繼續產生頁面')
+        print(r.stderr.strip()[:300])
+    else:
+        print('[OK] fetch_institutional.py 完成')
+
+    # 再產生頁面
     r = run([sys.executable, os.path.join(REPO_ROOT, 'generate_all.py')],
             timeout=900)
     if r.returncode != 0:
