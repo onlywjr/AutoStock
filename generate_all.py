@@ -285,16 +285,17 @@ def build_hot_section(hot_data: dict) -> str:
             f'</a>'
         )
     panels = []
-    for key, label in [
+    for idx, (key, label) in enumerate([
         ('amount_top10', '金額榜'),
         ('trades_top10', '活躍榜'),
         ('up_top10', '漲幅榜'),
         ('down_top10', '跌幅榜'),
-    ]:
+    ]):
         recs = hot_data.get(key, []) or []
-        show_ind = (key == 'amount_top10')  # 只有金額榜前 10 顯示產業
+        show_ind = (idx == 0)  # 只有第一個（金額榜）顯示產業
         rows = [hot_row(r, show_industry=show_ind) for r in recs]
-        panel = '<div class="panel active" id="panel-' + key + '">' + ('\n'.join(rows) or '<div style="text-align:center; padding:24px; color:#8b9bb4;">無資料</div>') + '</div>'
+        pcls = 'panel active' if idx == 0 else 'panel'
+        panel = '<div class="' + pcls + '" id="panel-' + key + '">' + ('\n'.join(rows) or '<div style="text-align:center; padding:24px; color:#8b9bb4;">無資料</div>') + '</div>'
         panels.append(panel)
     tabs_html = '<div class="tabs">' + ''.join(
         f'<button class="tab active" data-t="{key}">{label}</button>'
